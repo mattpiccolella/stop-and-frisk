@@ -1,13 +1,13 @@
 #/bin/bash
 
-if [[ $# -le 2 ]] ; then
+if [[ $# -lt 2 ]] ; then
     echo 'Please provide a file name and a destination name.'
     exit 0
 fi
 
 # Pick out the columns we want
 echo "Reducing the number of columns";
-cut --delimiter=, -f3-5 $1 | temp-reduced.csv
+cut -d ',' -f96-99,101 $1 > temp-reduced.csv
 
 # Parse the CSV file we're going to want to use, doing relevant deletions and replacements
 echo "Doing boolean replacement";
