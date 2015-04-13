@@ -1,6 +1,7 @@
 #########
 # file: convert_coordinates.py
-# description: Convert the x and y coordinates to latitude and longitude
+# description: Convert the x and y coordinates to latitude and longitude.
+# Results need to be reversed
 ########
 
 import pandas as pd
@@ -10,7 +11,7 @@ from pyproj import Proj
 
 def main(csv_in, csv_out):
   f = open(csv_in, 'r')
-  df = pd.read_csv(csv_in, header=0, sep=',', usecols=[108-1, 109-1], nrows=1000)
+  df = pd.read_csv(csv_in, header=0, sep=',', usecols=[108-1, 109-1])
   df = df.convert_objects(convert_numeric=True)
   df = df.astype('float')
   df = df.apply(lambda row: row*0.3048, axis=1)
