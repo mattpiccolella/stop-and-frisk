@@ -21,6 +21,8 @@ length(pcts_with_data)
 geo_data <- data.frame(x=data$x, y=data$y)
 #Omit data without geo_data
 geo_data_no_na <- na.omit(geo_data)
+#List of valid rows with geo_data
+valid_rows <- strtoi(rownames(geo_data_no_na))
 
 ###################################
 # K-means
