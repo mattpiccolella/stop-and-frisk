@@ -12,7 +12,7 @@ hist(pct, breaks=(1:123))
 pcts_with_data <- unique(pct)
 sort(pcts_with_data)
 length(pcts_with_data) 
-# Seems correct http://www.nyc.gov/html/nypd/html/home/precincts.shtml
+# Seems correct: http://www.nyc.gov/html/nypd/html/home/precincts.shtml
 
 #extract x and y coordinates
 x <- data$xcoord
@@ -32,15 +32,12 @@ proc.time() - ptm
 
 #Add cluster to data frame
 geo_data_no_na$cluster <- model$cluster
-#Add clusters to main data frame
-merge(geo_data, geo_data_no_na, b)
 #Get cluster centers
 centers <- model$centers
 
-#Lets see how large each cluster is
-
 #Zach k-means
-#geo_data[sample(dim(geo_data)[1], num_clusters, replace=F),]
+geo_data[sample(dim(geo_data)[1], num_clusters, replace=F),]
+
 
 ggplot(geo_data, aes(x=x, y=y)) +
   geom_point()
