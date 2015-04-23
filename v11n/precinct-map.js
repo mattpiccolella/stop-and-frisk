@@ -75,7 +75,6 @@ function addData() {
   }
   availablePrecincts = availablePrecincts.sort(comparePrecincts);
 
-  console.log(availablePrecincts);
   // Add the desired provinces, set functions for mouseover and mouseout
   provSubunits = g.selectAll(".subunit-prov")
     .data(availablePrecincts)

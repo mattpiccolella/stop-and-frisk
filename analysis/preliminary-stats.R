@@ -98,11 +98,3 @@ ggplot() +
   xlab("Age (years)") +
   ylab("Number of Stops") +
   ggtitle("Number of Stops by Age")
-
-
-
-
-
-
-
-

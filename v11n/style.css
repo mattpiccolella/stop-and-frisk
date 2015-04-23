@@ -11,3 +11,18 @@
 .bubble:hover {
   stroke: #000;
 }
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+svg.calendar {
+  margin: 0 auto;
+}
