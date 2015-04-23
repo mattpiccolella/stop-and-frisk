@@ -1,7 +1,7 @@
 // Constants.
 var WIDTH = 900;
 var HEIGHT = 550;
-var X_OFFSET = 120;
+var X_OFFSET = 220;
 var Y_OFFSET = 70;
 var X_SCALE = WIDTH - X_OFFSET;
 var Y_SCALE = HEIGHT - Y_OFFSET;
@@ -33,10 +33,11 @@ function getXAxis() {
   var xScale = getXScale();
   return d3.svg.axis().orient('bottom').scale(xScale);
 }
+
 function getYAxis() {
   var yScale = getYScale();
   return d3.svg.axis().orient('left').scale(yScale).tickSize(2)
-    .tickFormat(function(d,i){ return labels[i]; })
+    .tickFormat(function(d,i) { return labels[i]; })
     .tickValues(d3.range(labels.length));
 }
 
@@ -70,6 +71,9 @@ function addBars() {
             .style('fill',function(d,i){ return colors(i); })
             .attr('width',function(d){ return 0; })
             .on("mouseover", function(d,i){
+              var div = d3.select("body").append("div")   
+                .attr("class", "nvtooltip")               
+                .style("opacity", 0);
               div.transition()        
                 .duration(200)      
                 .style("opacity", .9);      
@@ -80,9 +84,7 @@ function addBars() {
                 .style("top", (d3.event.pageY - 28) + "px");       
             })
             .on("mouseout", function(){
-              div.transition()        
-                .duration(500)      
-                .style("opacity", 0); 
+              d3.selectAll(".nvtooltip").remove();
             }); 
 
   d3.select("svg").selectAll("rect")
