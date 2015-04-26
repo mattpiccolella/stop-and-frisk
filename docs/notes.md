@@ -6,10 +6,10 @@
 
 ##Prediction
 
-- We decided to try and predict arrest using naive bayes, logistic regression, and adaboost. In choosing features we began with looking at the set of reasons that an officer can check off in a UF-250 form in stating why he or she decided to stop a civilian. Data collected that would have happened after the stop such as "did the suspect have a gun" would lead to bad predicions given that possesion of a weapon would almost certainly lead to arrest.  
+- We decided to try and predict arrest using naive bayes and logistic regression. In choosing features we began with looking at the set of reasons that an officer can check off in a UF-250 form in stating why he or she decided to stop a civilian. Data collected that would have happened after the stop such as "did the suspect have a gun" would lead to bad predicions given that possesion of a weapon would almost certainly lead to arrest.  
 
 
-###The data set contained a list of reasons for stoping or frisking an individual. We wanted to 
+###Features used
 - cs_objcs reason for stop - carrying suspicious object
 - cs_descr reason for stop - fits a relevant description
 - cs_casng reason for stop - casing a victim or location
@@ -28,3 +28,53 @@
 - ac_stsnd additional circumstances - sights or sounds of criminal activity
 - ac_rept additional circumstances - report by victim/witness/officer
 - ac_inves additional circumstances - ongoing investigation
+
+
+###Naive Bayes Results
+
+        0     1
+  0 87392  4143
+  1 12730  2308
+
+  AUC:  0.7008258
+
+  Here is the problem, which is evident through the A-Priori probabilites
+           0          1 
+  0.93936259 0.06063741 
+
+
+###Logistic Regression Results
+
+             0      1
+  FALSE 100098   6434
+  TRUE      24     17
+
+When plotting the probabilites you get all the mass towards the left
+
+
+AUC: 0.7138809
+
+
+##Balancing data
+
+Given the inbalance in the data we sampled a data set that was more balanced. We used all 34000 arrests and a random sample of 50000 stops that did not lead to arrest
+
+###Naive Bayes with Balanced Data
+
+       0    1
+  0 7739 3161
+  1 2201 3359
+
+  AUC 0.7009978
+
+
+###Logistic Regression With Balanced Data
+
+          0    1
+  FALSE 8319 3575
+  TRUE  1621 2945
+
+
+  Big change in histogram
+
+AUC: 0.717748

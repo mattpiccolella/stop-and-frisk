@@ -6,7 +6,7 @@ library(ROCR)
 library(e1071)
 library(ada)
 ##################
-# Use logistic regression to find the probability of being arrested
+# Use naive bayes and logistic regression to find the probability of being arrested
 # given reasons for being stopped
 ##################
 
@@ -22,26 +22,42 @@ data[bad_rows,] <- rep(NA, dim(data)[2])
 data <- na.omit(data)
 
 # Get the reasons for stop
-predictor_data <- data.frame(cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, cs_casng=data$cs_casng,
-                             cs_lkout=data$cs_lkout, cs_cloth=data$cs_cloth, cs_drgtr=data$cs_drgtr,
-                             cs_furtv=data$cs_furtv, cs_vcrim=data$cs_vcrim, cs_bulge=data$cs_bulge,
-                             ac_proxm=data$ac_proxm, ac_evasv=data$ac_evasv, ac_assoc=data$ac_assoc, 
-                             ac_cgdir=data$ac_cgdir, ac_incid=data$ac_incid, ac_time=data$ac_time, 
-                             ac_stsnd=data$ac_stsnd, ac_rept=data$ac_rept, ac_inves=data$ac_inves)
+predictor_data <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, 
+                             cs_casng=data$cs_casng, cs_lkout=data$cs_lkout, cs_cloth=data$cs_cloth, 
+                             cs_drgtr=data$cs_drgtr, cs_furtv=data$cs_furtv, cs_vcrim=data$cs_vcrim, 
+                             cs_bulge=data$cs_bulge, ac_proxm=data$ac_proxm, ac_evasv=data$ac_evasv, 
+                             ac_assoc=data$ac_assoc, ac_cgdir=data$ac_cgdir, ac_incid=data$ac_incid, 
+                             ac_time=data$ac_time, ac_stsnd=data$ac_stsnd, ac_rept=data$ac_rept, 
+                             ac_inves=data$ac_inves)
 
 # Get vector of arrests
 arrests <- data$arstmade
+
+# Split data into arrests and no arrest
+s <- which(arrests==1)
+arrest_data <- predictor_data[s,]
+
+s <- which(arrests==0)
+no_arrest_data <- predictor_data[s,]
+
+NUMBER_OF_NO_ARRESTS <- 50000
+no_arrest_idx <- sample(nrow(no_arrest_data), NUMBER_OF_NO_ARRESTS)
+
+balanced_data <- rbind(arrest_data, no_arrest_data[no_arrest_idx,])
 
 # Show distribution of reasons
 col_sums <- colSums(predictor_data)
 barplot(col_sums)
 
+# Choose the data set you wish to use (predictor_data or balanced data)
+D <- balanced_data
+
 # Split into test and train
-ndx <- sample(nrow(predictor_data), floor(nrow(predictor_data) * 0.8), replace=F)
-x_train <- predictor_data[ndx,]
-x_test <- predictor_data[-ndx,]
-y_train <- arrests[ndx]
-y_test <- arrests[-ndx]
+ndx <- sample(nrow(D), floor(nrow(D) * 0.8))
+x_train <- D[ndx, -1]
+x_test <- D[-ndx, -1]
+y_train <- D[ndx, 1]
+y_test <- D[-ndx, 1]
 
 
 # Use naive Bayes to build model
@@ -69,20 +85,19 @@ performance(pred, 'auc')
 #########
 
 # Put x and y values in same data frame
-lr_data <- data.frame(predictor_data, arstmade=data$arstmade)
 
 # split into test and train
-train <- lr_data[ndx,]
-test <- lr_data[-ndx,]
+train <- D[ndx,]
+test <- D[-ndx,]
 
 # Build the model
 lr_model <- glm(arstmade ~ ., data=train, family="binomial")
 
 # Build a confusion matrix
-table(predict(lr_model, test[,-18]) > 0, test$arstmade)
+table(predict(lr_model, test[,-1]) > 0, test$arstmade)
 
 # plot histogram of predicted probabilities
-lr_probs <- predict(lr_model, test[,-18], type="response")
+lr_probs <- predict(lr_model, test[,-1], type="response")
 qplot(x=lr_probs, geom="histogram")
 
 # plot ROC curve
@@ -90,36 +105,3 @@ pred <- prediction(lr_probs, test$arstmade)
 perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
 performance(pred, 'auc')
-
-########
-# Adaboost
-########
-
-ptm <- proc.time()
-ada_model <- ada(arstmade ~., data=train, verbose=TRUE, na.action=na.rpart)
-proc.time() - ptm
-
-ptm <- proc.time()
-ada_model <- addtest(ada_model, test.x=test[,-18], test.y=test$arstmade)
-proc.time() - ptm
-
-# Plot the model
-plot(ada_model, test=T)
-
-# Plot most important features
-varplot(ada_model)
-
-# Predict on test data
-predictions <-predict(ada_model, newdata=test, type="vector")
-
-# Test accuracy - may not be best measure as much less arrests
-sum(predictions==test$arstmade)/length(predictions)
-
-# Test what percentage of arrest predictions were correct
-s<-which(test$arstmade==1)
-sum(predictions[s]==test$arstmade[s])/length(predictions[s])
-
-# Test what percentage of no arrest pereictions were correct
-s<-which(test$arstmade==0)
-sum(predictions[s]==test$arstmade[s])/length(predictions[s])
-
