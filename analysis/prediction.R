@@ -89,16 +89,24 @@ performance(pred, 'auc')
 # split into test and train
 train <- D[ndx,]
 test <- D[-ndx,]
+y_train <- train$arstmade
+y_test <- test$arstmade
+
+train$arstmade <- NULL
+test$arstmade <- NULL
+x_train <- as.matrix(train)
+x_test <- as.matrix(test)
+
 
 # Build the model
-lr_model <- glm(arstmade ~ ., data=train, family="binomial")
+lr_model <- cv.glmnet(x_train, factor(y_train), family="binomial", type.measure="auc")
 
 # Build a confusion matrix
-table(predict(lr_model, test[,-1]) > 0, test$arstmade)
+table(predict(lr_model, x_test, type="class"), factor(y_test))
 
 # plot histogram of predicted probabilities
-lr_probs <- predict(lr_model, test[,-1], type="response")
-qplot(x=lr_probs, geom="histogram")
+lr_probs <- predict(lr_model, x_test, type="response")
+qplot(x=lr_probs[,1], geom="histogram")
 
 # plot ROC curve
 pred <- prediction(lr_probs, test$arstmade)
