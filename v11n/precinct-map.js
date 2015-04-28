@@ -1,5 +1,6 @@
 // Constants
 var SVG_ID = "china-map";
+var STATIC_LABEL = "data/";
 
 // Global Variables
 var width = 1000,
@@ -109,17 +110,15 @@ function drawLegend() {
       });
 }
 
-// Draw the map of China given our previously parsed GeoJSON.
-d3.json("data/precincts.json", function(error, precinct) {
-  precinctData = precinct;
-  drawMap();
-  drawPrecincts();
-  drawLegend();
-});
-
-d3.csv("data/precincts.csv", function(error, data) {
+d3.csv(STATIC_LABEL + "precincts.csv", function(error, data) {
   stopData = {};
   data.forEach(function(d) {
     stopData[parseInt(d.precinct)] = parseInt(d.stops);
+  });
+  d3.json(STATIC_LABEL + "precincts.json", function(error, precinct) {
+    precinctData = precinct;
+    drawMap();
+    drawPrecincts();
+    drawLegend();
   });
 });

@@ -5,6 +5,7 @@ var X_OFFSET = 220;
 var Y_OFFSET = 70;
 var X_SCALE = WIDTH - X_OFFSET;
 var Y_SCALE = HEIGHT - Y_OFFSET;
+var STATIC_STRING = "data/";
 
 // Global variables.
 var chart;
@@ -45,12 +46,12 @@ function addAxes() {
   var xAxis = getXAxis();
   var yAxis = getYAxis();
   canvas.append('g')
-    .attr("transform", "translate(230,0)")
+    .attr("transform", "translate(290,0)")
     .attr('id','yaxis')
     .call(yAxis);
 
   canvas.append('g')
-    .attr("transform", "translate(230,480)")
+    .attr("transform", "translate(290,480)")
     .attr('id','xaxis')
     .call(xAxis);
 }
@@ -59,7 +60,7 @@ function addBars() {
   var xScale = getXScale();
   var yScale = getYScale();
   chart = canvas.append('g')
-            .attr("transform", "translate(150,0)")
+            .attr("transform", "translate(210,0)")
             .attr('id','bars')
             .selectAll('rect')
             .data(values)
@@ -99,7 +100,7 @@ function addChart() {
   addBars();
 }
 
-d3.csv("data/barchart.csv", function(error, data) {
+d3.csv(STATIC_STRING + "barchart.csv", function(error, data) {
   labels = [''];
   values = [];
   data.forEach(function(d) {

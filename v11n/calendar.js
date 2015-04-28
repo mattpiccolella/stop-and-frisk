@@ -1,3 +1,5 @@
+var STATIC_LABEL = "data/";
+
 var width = 960,
     height = 136,
     cellSize = 17; // cell size
@@ -17,7 +19,7 @@ var color = d3.scale.quantize()
     .domain([MIN,MAX])
     .range(d3.range(11).map(function(d) { return color_choices[d] }));
 
-var svg = d3.select("body").selectAll("svg.calendar")
+var svg = d3.select("#main").selectAll("svg.calendar")
     .data(d3.range(2012, 2013))
   .enter().append("svg")
     .attr("width", width)
@@ -69,7 +71,7 @@ svg.selectAll(".month")
     .attr("class", "month")
     .attr("d", monthPath);
 
-d3.csv("data/calendar.csv", function(error, csv) {
+d3.csv(STATIC_LABEL + "calendar.csv", function(error, csv) {
   data = d3.nest()
     .key(function(d) { return d.datestop; })
     .rollup(function(d) { return (d[0].num_stops); })
