@@ -77,7 +77,7 @@ d3.csv("data/calendar.csv", function(error, csv) {
 
   rect.filter(function(d) { return d in data; })
       .attr("class", function(d) { return "day"; })
-      .style("fill", function(d) { console.log(parseInt(data[d])); return color(parseInt(data[d])); })
+      .style("fill", function(d) { return color(parseInt(data[d])); })
     .select("title")
       .text(function(d) { return d + ": " + percent(data[d]); });
 });
