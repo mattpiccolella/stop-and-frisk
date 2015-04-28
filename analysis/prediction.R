@@ -17,9 +17,8 @@ data <- read.csv(DATA_FILE, header=T, quote = "", na.strings = c("NA", "NULL"))
 data <- na.omit(data)
 
 # Remove arrest rows that equal 3
-bad_rows <- match(c(3), data$arstmade)
-data[bad_rows,] <- rep(NA, dim(data)[2])
-data <- na.omit(data)
+data <- data %>%
+  filter(arstmade != 3)
 
 # Get the reasons for stop
 predictor_data <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, 
@@ -30,27 +29,52 @@ predictor_data <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_
                              ac_time=data$ac_time, ac_stsnd=data$ac_stsnd, ac_rept=data$ac_rept, 
                              ac_inves=data$ac_inves)
 
-# Get vector of arrests
-arrests <- data$arstmade
+# Adding some additional categorical data
+predictor_data2 <- data.frame(predictor_data, race=data$race, pct=data$pct, 
+                   offunif=data$offunif, sex=data$sex, build=data$build)
 
-# Split data into arrests and no arrest
-s <- which(arrests==1)
-arrest_data <- predictor_data[s,]
+# Filter out bad categories
+predictor_data2 <- predictor_data2 %>%
+  # B: black, A: Asian, W: White, P: Black Hispanic, Q: White Hispanic
+  filter(race=="B" | race=="W" | race=="A" | race=="P" | race=="Q") %>%
+  # Filter out unknow sex (If you dont know the sex then your data is probably not great)
+  filter(sex=="F" | sex=="M") %>%
+  # H: Heavy, M: Medium, U: Muscular, T: Thin, Z: Unknown
+  filter(build=="H" | build=="M" | build=="T" | build=="U" | build=="Z")
 
-s <- which(arrests==0)
-no_arrest_data <- predictor_data[s,]
+# Re-factor data
+predictor_data2$race <- factor(predictor_data2$race)
+predictor_data2$sex <- factor(predictor_data2$sex)
+predictor_data2$build <- factor(predictor_data2$build)
+predictor_data2$pct <- factor(predictor_data2$pct)
 
-NUMBER_OF_NO_ARRESTS <- 50000
-no_arrest_idx <- sample(nrow(no_arrest_data), NUMBER_OF_NO_ARRESTS)
 
-balanced_data <- rbind(arrest_data, no_arrest_data[no_arrest_idx,])
+# Takes in data and returns balanced set of data with all arrests and
+# number of no arrests determined by param not_arrested_count
+balance_data <- function(data, not_arrested_count) {
+  s <- which(data$arstmade==1)
+  arrest_data <- data[s,]
+  
+  s <- which(data$arstmade==0)
+  no_arrest_data <- data[s,]
+  
+  no_arrest_idx <- sample(nrow(no_arrest_data), not_arrested_count)
+  
+  balanced_data <- rbind(arrest_data, no_arrest_data[no_arrest_idx,])
+  
+  return(balanced_data)
+}
 
 # Show distribution of reasons
 col_sums <- colSums(predictor_data)
 barplot(col_sums)
 
+
+#######################################
+# Predictions
+#######################################
 # Choose the data set you wish to use (predictor_data or balanced data)
-D <- balanced_data
+D <- predictor_data2
 
 # Split into test and train
 ndx <- sample(nrow(D), floor(nrow(D) * 0.8))
@@ -72,16 +96,39 @@ qplot(x=probs[, "1"], geom="histogram")
 
 # Notice the confidence of some results- should see what features make less confident
 
-
 # plot ROC curve
 pred <- prediction(probs[, "1"], y_test)
 perf_nb <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_nb)
 performance(pred, 'auc')
 
+#######
+# Logistic regression
+#######
+
+# split into test and train
+train <- D[ndx,]
+test <- D[-ndx,]
+
+# Build the model
+lr_model <- glm(arstmade ~ ., data=train, family="binomial")
+
+# Build a confusion matrix
+table(predict(lr_model, test[,-1]) > 0, test$arstmade)
+
+# plot histogram of predicted probabilities
+lr_probs <- predict(lr_model, test[,-1], type="response")
+qplot(x=lr_probs, geom="histogram")
+
+# plot ROC curve
+pred <- prediction(lr_probs, test$arstmade)
+perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
+plot(perf_lr)
+performance(pred, 'auc')
+
 
 #########
-# Logistic Regression
+# Logistic Regression with lasso
 #########
 
 # Put x and y values in same data frame
