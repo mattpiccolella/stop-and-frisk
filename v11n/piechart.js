@@ -1,5 +1,6 @@
 // Constants
 var DEFAULT_LABEL = 'days';
+var STATIC_LABEL = "data/";
 
 // Global variables
 var chart;
@@ -23,7 +24,7 @@ var addPieChart = function() {
       .donut(true)
       .donutRatio(0.35);
 
-  d3.select("#chart2 svg")
+  d3.select("#chart svg")
       .datum(chartData[currentLabel])
       .transition().duration(350)
       .call(chart);
@@ -31,7 +32,7 @@ var addPieChart = function() {
   return chart;
 }
 
-d3.csv("data/stats.csv", function(error, data) {
+d3.csv(STATIC_LABEL + "stats.csv", function(error, data) {
   data.forEach(function(d) {
     var datum = {};
     datum.label = d.label;

@@ -21,7 +21,7 @@ data <- data %>%
   filter(arstmade != 3)
 
 # Get the reasons for stop
-predictor_data <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, 
+predictors <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, 
                              cs_casng=data$cs_casng, cs_lkout=data$cs_lkout, cs_cloth=data$cs_cloth, 
                              cs_drgtr=data$cs_drgtr, cs_furtv=data$cs_furtv, cs_vcrim=data$cs_vcrim, 
                              cs_bulge=data$cs_bulge, ac_proxm=data$ac_proxm, ac_evasv=data$ac_evasv, 
@@ -30,11 +30,11 @@ predictor_data <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_
                              ac_inves=data$ac_inves)
 
 # Adding some additional categorical data
-predictor_data2 <- data.frame(predictor_data, race=data$race, pct=data$pct, 
+predictors_with_categorical <- data.frame(predictor_data, race=data$race, 
                    offunif=data$offunif, sex=data$sex, build=data$build)
 
 # Filter out bad categories
-predictor_data2 <- predictor_data2 %>%
+predictors_with_categorical <- predictors_with_categorical %>%
   # B: black, A: Asian, W: White, P: Black Hispanic, Q: White Hispanic
   filter(race=="B" | race=="W" | race=="A" | race=="P" | race=="Q") %>%
   # Filter out unknow sex (If you dont know the sex then your data is probably not great)
@@ -43,10 +43,9 @@ predictor_data2 <- predictor_data2 %>%
   filter(build=="H" | build=="M" | build=="T" | build=="U" | build=="Z")
 
 # Re-factor data
-predictor_data2$race <- factor(predictor_data2$race)
-predictor_data2$sex <- factor(predictor_data2$sex)
-predictor_data2$build <- factor(predictor_data2$build)
-predictor_data2$pct <- factor(predictor_data2$pct)
+predictors_with_categorical$race <- factor(predictors_with_categorical$race)
+predictors_with_categorical$sex <- factor(predictors_with_categorical$sex)
+predictors_with_categorical$build <- factor(predictors_with_categorical$build)
 
 
 # Takes in data and returns balanced set of data with all arrests and
@@ -65,16 +64,12 @@ balance_data <- function(data, not_arrested_count) {
   return(balanced_data)
 }
 
-# Show distribution of reasons
-col_sums <- colSums(predictor_data)
-barplot(col_sums)
-
 
 #######################################
 # Predictions
 #######################################
-# Choose the data set you wish to use (predictor_data or balanced data)
-D <- predictor_data2
+# Choose the data set you wish to use 
+D <- balanced_data
 
 # Split into test and train
 ndx <- sample(nrow(D), floor(nrow(D) * 0.8))
@@ -160,3 +155,34 @@ pred <- prediction(lr_probs, test$arstmade)
 perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
 performance(pred, 'auc')
+
+arrests_vs_probs <- function(y_actual, y_pred_probs) {
+
+  # Put the correct y values and predicted probabilites in a data frame
+  df <- data.frame(y_actual=y_actual, y_pred_probs=y_pred_probs)
+  # Shuffle the rows in the data frame
+  df_shuffled <- df[sample(nrow(df), nrow(df)),]
+  
+  # Calculate percent of of stops vs the percent of arrests
+  avg_stop_and_arrest <- df_shuffled %>%
+      mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
+      mutate(pct_stops = cumsum(rep(1, n()))/n())
+  ggplot(avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests)) + geom_line()
+  
+  # Make a data frame so that it is ordered by highest to lowest probabilites
+  df_sorted <- df[order(-df$y_pred_probs), ]
+  
+  # Calculate percent of stops vs the percent of arrests
+  best_stops <- df_sorted %>%
+    mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
+    mutate(pct_stops = cumsum(rep(1, n()))/n())
+  
+  # Plot the tradeoff between the the predicted probability of stopping somewone
+  # vs the percentage of people stopped
+  ggplot(best_stops, aes(x=y_pred_probs, y=pct_arrests)) + geom_line()
+  
+  # Plot the percent of stops vs the percent of arrests
+  ggplot(best_stops, aes(x=pct_stops, y=pct_arrests)) + 
+    geom_line() +
+    geom_line(data=avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests))
+}
