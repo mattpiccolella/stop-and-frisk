@@ -156,6 +156,9 @@ perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
 performance(pred, 'auc')
 
+#########
+# Function which 
+
 arrests_vs_probs <- function(y_actual, y_pred_probs) {
 
   # Put the correct y values and predicted probabilites in a data frame
