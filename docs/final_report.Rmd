@@ -1,0 +1,16 @@
+---
+title: "Modeling Social Data Final Report"
+author: Zachary Gleicher, Matt Piccolella, Edo Roth
+date: 5/3/15
+output: pdf_document
+---
+
+## Cleaning the Data
+
+## Preliminary Data Ananlysis
+
+## Objective: Can we make better stops?
+
+```{r}
+summary(cars)
+```
