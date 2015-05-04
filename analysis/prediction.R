@@ -30,7 +30,7 @@ predictors <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_desc
                              ac_inves=data$ac_inves)
 
 # Adding some additional categorical data
-predictors_with_categorical <- data.frame(predictor_data, race=data$race, 
+predictors_with_categorical <- data.frame(predictors, race=data$race, 
                    offunif=data$offunif, sex=data$sex, build=data$build)
 
 # Filter out bad categories
@@ -50,16 +50,18 @@ predictors_with_categorical$build <- factor(predictors_with_categorical$build)
 
 # Takes in data and returns balanced set of data with all arrests and
 # number of no arrests determined by param not_arrested_count
-balance_data <- function(data, not_arrested_count) {
+balance_data <- function(data, arrest_count non_arrest_count) {
   s <- which(data$arstmade==1)
   arrest_data <- data[s,]
   
   s <- which(data$arstmade==0)
   no_arrest_data <- data[s,]
   
-  no_arrest_idx <- sample(nrow(no_arrest_data), not_arrested_count)
+  no_arrest_idx <- sample(nrow(no_arrest_data), non_arrest_count)
   
-  balanced_data <- rbind(arrest_data, no_arrest_data[no_arrest_idx,])
+  arrest_idx <- sample(nrow(arrest_data), arrest_count)
+  
+  balanced_data <- rbind(arrest_data[arrest_idx,], no_arrest_data[no_arrest_idx,])
   
   return(balanced_data)
 }
@@ -69,7 +71,8 @@ balance_data <- function(data, not_arrested_count) {
 # Predictions
 #######################################
 # Choose the data set you wish to use 
-D <- balanced_data
+D <- predictors_with_categorical
+D<- predictors_with_categorical[1:10000,]
 
 # Split into test and train
 ndx <- sample(nrow(D), floor(nrow(D) * 0.8))
@@ -134,10 +137,11 @@ test <- D[-ndx,]
 y_train <- train$arstmade
 y_test <- test$arstmade
 
-train$arstmade <- NULL
-test$arstmade <- NULL
-x_train <- as.matrix(train)
-x_test <- as.matrix(test)
+# Convert categories into indicator variables
+x_factors_train <- model.matrix(arstmade~., data=train)[,-1]
+x_factors_test <- model.matrix(arstmade~., data=test)[,-1]
+x_train <- as.matrix(x_factors_train)
+x_test <- as.matrix(x_factors_test)
 
 
 # Build the model
@@ -156,8 +160,19 @@ perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
 performance(pred, 'auc')
 
+get_best_features <- function(crossval) {
+  coefs <- coef(crossval, s="lambda.min")
+  coefs <- as.data.frame(as.matrix(coefs))
+  names(coefs) <- "weight"
+  coefs$features <- row.names(coefs)
+  row.names(coefs) <- NULL
+  subset(coefs, weight != 0)
+}
+
 #########
-# Function which 
+# Useful graphs that show the percentage of stops vs percentage of arrests
+# and probability of arrest vs percentage of arrests
+######
 
 arrests_vs_probs <- function(y_actual, y_pred_probs) {
 
