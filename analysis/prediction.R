@@ -12,6 +12,7 @@ library(ada)
 
 DATA_FILE <- "../data/2012-data.csv"
 
+
 # Import data and clean NA values
 data <- read.csv(DATA_FILE, header=T, quote = "", na.strings = c("NA", "NULL"))
 data <- na.omit(data)
@@ -21,18 +22,18 @@ data <- data %>%
   filter(arstmade != 3)
 
 # Get the reasons for stop
-predictors <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_descr=data$cs_descr, 
-                             cs_casng=data$cs_casng, cs_lkout=data$cs_lkout, cs_cloth=data$cs_cloth, 
-                             cs_drgtr=data$cs_drgtr, cs_furtv=data$cs_furtv, cs_vcrim=data$cs_vcrim, 
-                             cs_bulge=data$cs_bulge, ac_proxm=data$ac_proxm, ac_evasv=data$ac_evasv, 
-                             ac_assoc=data$ac_assoc, ac_cgdir=data$ac_cgdir, ac_incid=data$ac_incid, 
-                             ac_time=data$ac_time, ac_stsnd=data$ac_stsnd, ac_rept=data$ac_rept, 
-                             ac_inves=data$ac_inves)
+predictors <- data.frame(arstmade=factor(data$arstmade), cs_objcs=factor(data$cs_objcs), cs_descr=factor(data$cs_descr), 
+                             cs_casng=factor(data$cs_casng), cs_lkout=factor(data$cs_lkout), cs_cloth=factor(data$cs_cloth), 
+                             cs_drgtr=factor(data$cs_drgtr), cs_furtv=factor(data$cs_furtv), cs_vcrim=factor(data$cs_vcrim), 
+                             cs_bulge=factor(data$cs_bulge), ac_proxm=factor(data$ac_proxm), ac_evasv=factor(data$ac_evasv), 
+                             ac_assoc=factor(data$ac_assoc), ac_cgdir=factor(data$ac_cgdir), ac_incid=factor(data$ac_incid), 
+                             ac_time=factor(data$ac_time), ac_stsnd=factor(data$ac_stsnd), ac_rept=factor(data$ac_rept), 
+                             ac_inves=factor(data$ac_inves))
 
 # Adding some additional categorical data
 predictors_with_categorical <- data.frame(predictors, race=data$race, 
-                   offunif=data$offunif, sex=data$sex, build=data$build, age=data$age,
-                   ht_inch = data$ht_inch, ht_feet = data$ht_feet)
+                   offunif=data$offunif, sex=data$sex, build=data$build,
+                   ht_feet=data$ht_feet, ht_inch=data$ht_inch, age=data$age)
 
 # Filter out bad categories
 predictors_with_categorical <- predictors_with_categorical %>%
@@ -47,12 +48,12 @@ predictors_with_categorical <- predictors_with_categorical %>%
 predictors_with_categorical$race <- factor(predictors_with_categorical$race)
 predictors_with_categorical$sex <- factor(predictors_with_categorical$sex)
 predictors_with_categorical$build <- factor(predictors_with_categorical$build)
+predictors_with_categorical$offunif <- factor(predictors_with_categorical$offunif)
 
 #Categorize height into discrete categories
 NUM_INCHES_IN_FOOT <- 12
-total_ht_inches <- as.numeric(as.character(predictors_with_categorical$ht_feet))*NUM_INCHES_IN_FOOT + as.numeric(as.character(predictors_with_categorical$ht_inch))
-
-predictors_with_categorical <- cbind(predictors_with_categorical,total_ht_inches)
+total_ht_inches <- as.numeric(as.character(predictors_with_categorical$ht_feet))*NUM_INCHES_IN_FOOT + 
+  as.numeric(as.character(predictors_with_categorical$ht_inch))
 
 categorical_height<- numeric(nrow(predictors_with_categorical))
 
@@ -66,7 +67,7 @@ categorical_height = ((total_ht_inches >= 72) & is_male) * 4 +
   ((total_ht_inches >= 60 & total_ht_inches < 65) & !is_male) * 2 +
   ((total_ht_inches < 60) & !is_male) * 1
 
-predictors_with_categorical <- cbind(predictors_with_categorical, categorical_height)
+predictors_with_categorical$categorical_height <- factor(categorical_height)
 
 #4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
 
@@ -78,17 +79,21 @@ is_older_26 = as.numeric(age>26)
 is_older_35 = as.numeric(age>35)
 is_older_50 = as.numeric(age>50)
 
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_15)
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_18)
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_21)
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_26)
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_35)
-predictors_with_categorical <- cbind(predictors_with_categorical,is_older_50)
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_15))
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_18))
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_21))
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_26))
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_35))
+predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_50))
 
+# Remove unecessary data
+predictors_with_categorical$age <- NULL
+predictors_with_categorical$ht_feet <- NULL
+predictors_with_categorical$ht_inch <- NULL
 
 # Takes in data and returns balanced set of data with all arrests and
 # number of no arrests determined by param not_arrested_count
-balance_data <- function(data, arrest_count non_arrest_count) {
+balance_data <- function(data, arrest_count, non_arrest_count) {
   s <- which(data$arstmade==1)
   arrest_data <- data[s,]
   
@@ -104,16 +109,80 @@ balance_data <- function(data, arrest_count non_arrest_count) {
   return(balanced_data)
 }
 
+#########
+# Function that prints useful graphs that show the percentage of stops vs percentage of arrests
+# and probability of arrest vs percentage of arrests
+######
+
+arrests_vs_probs <- function(y_actual, y_pred_probs) {
+  y_actual <- test$arstmade
+  y_pred_probs <- lr_probs
+  y_actual <- as.numeric(as.character(y_actual))
+  
+  # If naive bayes, we have matrix containing prob false and true. Must 
+  # choose prob of true
+  if(!is.vector(y_pred_probs)) {
+    if(ncol(y_pred_probs) == 2) {
+      y_pred_probs <- y_pred_probs[,2]
+    } else {
+      y_pred_probs <- y_pred_probs[,1]
+    }
+  }
+  
+  # Put the correct y values and predicted probabilites in a data frame
+  df <- data.frame(y_actual=y_actual, y_pred_probs=y_pred_probs)
+  # Shuffle the rows in the data frame
+  df_shuffled <- df[sample(nrow(df), nrow(df)),]
+  
+  # Calculate percent of of stops vs the percent of arrests
+  avg_stop_and_arrest <- df_shuffled %>%
+    mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
+    mutate(pct_stops = cumsum(rep(1, n()))/n())
+  plot1 <- ggplot(avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests)) + geom_line()
+  
+  # Make a data frame so that it is ordered by highest to lowest probabilites
+  df_sorted <- df[order(-df$y_pred_probs), ]
+  
+  # Calculate percent of stops vs the percent of arrests
+  best_stops <- df_sorted %>%
+    mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
+    mutate(pct_stops = cumsum(rep(1, n()))/n())
+  
+  # Plot the tradeoff between the the predicted probability of stopping somewone
+  # vs the percentage of people stopped
+  plot2 <- ggplot(best_stops, aes(x=y_pred_probs, y=pct_arrests)) + geom_line()
+  
+  # Plot the percent of stops vs the percent of arrests
+  plot3 <- ggplot(best_stops, aes(x=pct_stops, y=pct_arrests)) + 
+    geom_line()
+  
+  print(plot1)
+  print(plot2)
+  print(plot3)
+  
+}
+
 
 #######################################
 # Predictions
 #######################################
 # Choose the data set you wish to use 
-D <- predictors_with_categorical
-D<- predictors_with_categorical[1:10000,]
+ARREST_COUNT <- 30000
+NO_ARREST_COUNT <- 30000
+D <- balance_data(predictors_with_categorical, ARREST_COUNT, NO_ARREST_COUNT)
 
 # Split into test and train
-ndx <- sample(nrow(D), floor(nrow(D) * 0.8))
+PCT_TRAIN <- 0.8
+
+ndx <- sample(nrow(D), floor(nrow(D) * PCT_TRAIN))
+
+##########
+# Naive Bayes
+##########
+NB_OUTPUT_DATA <- "output/nb_data.txt"
+NB_OUTPUT_GRAPHS <- "output/nb_graphs.pdf"
+sink(NB_OUTPUT_DATA)
+
 x_train <- D[ndx, -1]
 x_test <- D[-ndx, -1]
 y_train <- D[ndx, 1]
@@ -122,13 +191,17 @@ y_test <- D[-ndx, 1]
 
 # Use naive Bayes to build model
 nb_model <- naiveBayes(x_train, factor(y_train))
+print("Naive Bayes Model")
+print(nb_model)
 
 # Build confusion matrix
-table(predict(nb_model, x_test), factor(y_test))
+nb_table <- table(predict(nb_model, x_test), factor(y_test))
+print("Naive Bayes Confusion Matrix")
+print(nb_table)
 
 # Get the probabilites of prediction
 probs <- predict(nb_model, x_test, type="raw")
-qplot(x=probs[, "1"], geom="histogram")
+nb_pred_prob <- qplot(x=probs[, "1"], geom="histogram")
 
 # Notice the confidence of some results- should see what features make less confident
 
@@ -136,11 +209,25 @@ qplot(x=probs[, "1"], geom="histogram")
 pred <- prediction(probs[, "1"], y_test)
 perf_nb <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_nb)
-performance(pred, 'auc')
+
+print("Naive Bayes Performance")
+print(performance(pred, 'auc'))
+sink()
+
+#Print Graphs
+pdf(NB_OUTPUT_GRAPHS)
+print(nb_pred_prob)
+plot(perf_nb)
+arrests_vs_probs(y_train, probs) 
+dev.off()
+
 
 #######
 # Logistic regression
 #######
+LR_OUTPUT_DATA <- "output/lr_data.txt"
+LR_OUTPUT_GRAPHS <- "output/lr_graphs.pdf"
+sink(LR_OUTPUT_DATA)
 
 # split into test and train
 train <- D[ndx,]
@@ -148,24 +235,41 @@ test <- D[-ndx,]
 
 # Build the model
 lr_model <- glm(arstmade ~ ., data=train, family="binomial")
+print("Logistic Regression Model")
+print(lr_model)
 
 # Build a confusion matrix
-table(predict(lr_model, test[,-1]) > 0, test$arstmade)
+lr_table <- table(predict(lr_model, test[,-1]) > 0, test$arstmade)
+print("Logistic Regression Confusion Matrix")
+print(lr_table)
 
 # plot histogram of predicted probabilities
 lr_probs <- predict(lr_model, test[,-1], type="response")
-qplot(x=lr_probs, geom="histogram")
+lr_pred_prob <- qplot(x=lr_probs, geom="histogram")
 
 # plot ROC curve
 pred <- prediction(lr_probs, test$arstmade)
 perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
-performance(pred, 'auc')
+
+print("Logistic Regression AUC")
+print(performance(pred, 'auc'))
+sink()
+
+#Print the graphs
+pdf(LR_OUTPUT_GRAPHS)
+print(lr_pred_prob)
+plot(perf_lr)
+arrests_vs_probs(test$arstmade, lr_probs) 
+dev.off()
 
 
 #########
 # Logistic Regression with lasso
 #########
+LASSO_OUTPUT_DATA <- "output/lasso_data.txt"
+LASSO_OUTPUT_GRAPHS <- "output/lasso_graphs.pdf"
+sink(LASSO_OUTPUT_DATA)
 
 # Put x and y values in same data frame
 
@@ -184,19 +288,26 @@ x_test <- as.matrix(x_factors_test)
 
 # Build the model
 lr_model <- cv.glmnet(x_train, factor(y_train), family="binomial", type.measure="auc")
+print("Lasso Model")
+print(lr_model)
 
 # Build a confusion matrix
-table(predict(lr_model, x_test, type="class"), factor(y_test))
+lasso_table <- table(predict(lr_model, x_test, type="class"), factor(y_test))
+print("Lasso Confusion Matrix")
+print(lasso_table)
 
 # plot histogram of predicted probabilities
 lr_probs <- predict(lr_model, x_test, type="response")
-qplot(x=lr_probs[,1], geom="histogram")
+lasso_pred_prob <- qplot(x=lr_probs[,1], geom="histogram")
 
 # plot ROC curve
 pred <- prediction(lr_probs, test$arstmade)
 perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
-performance(pred, 'auc')
+
+print("Lasso AUC")
+print(performance(pred, 'auc'))
+
 
 get_best_features <- function(crossval) {
   coefs <- coef(crossval, s="lambda.min")
@@ -207,38 +318,21 @@ get_best_features <- function(crossval) {
   subset(coefs, weight != 0)
 }
 
-#########
-# Useful graphs that show the percentage of stops vs percentage of arrests
-# and probability of arrest vs percentage of arrests
-######
+# Get Most important important features
+feats <- get_best_features(lr_model)
+feats <- feats[order(feats$weight),]
 
-arrests_vs_probs <- function(y_actual, y_pred_probs) {
+print("Lasso Most Predictive Features")
 
-  # Put the correct y values and predicted probabilites in a data frame
-  df <- data.frame(y_actual=y_actual, y_pred_probs=y_pred_probs)
-  # Shuffle the rows in the data frame
-  df_shuffled <- df[sample(nrow(df), nrow(df)),]
-  
-  # Calculate percent of of stops vs the percent of arrests
-  avg_stop_and_arrest <- df_shuffled %>%
-      mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
-      mutate(pct_stops = cumsum(rep(1, n()))/n())
-  ggplot(avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests)) + geom_line()
-  
-  # Make a data frame so that it is ordered by highest to lowest probabilites
-  df_sorted <- df[order(-df$y_pred_probs), ]
-  
-  # Calculate percent of stops vs the percent of arrests
-  best_stops <- df_sorted %>%
-    mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
-    mutate(pct_stops = cumsum(rep(1, n()))/n())
-  
-  # Plot the tradeoff between the the predicted probability of stopping somewone
-  # vs the percentage of people stopped
-  ggplot(best_stops, aes(x=y_pred_probs, y=pct_arrests)) + geom_line()
-  
-  # Plot the percent of stops vs the percent of arrests
-  ggplot(best_stops, aes(x=pct_stops, y=pct_arrests)) + 
-    geom_line() +
-    geom_line(data=avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests))
-}
+print(head(feats, 10))
+print(tail(feats, 10))
+
+sink()
+
+
+pdf(LASSO_OUTPUT_GRAPHS)
+print(lasso_pred_prob)
+plot(perf_lr)
+arrests_vs_probs(y_test, lr_probs) 
+dev.off()
+
