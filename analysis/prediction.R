@@ -31,7 +31,8 @@ predictors <- data.frame(arstmade=data$arstmade, cs_objcs=data$cs_objcs, cs_desc
 
 # Adding some additional categorical data
 predictors_with_categorical <- data.frame(predictors, race=data$race, 
-                   offunif=data$offunif, sex=data$sex, build=data$build)
+                   offunif=data$offunif, sex=data$sex, build=data$build, age=data$age,
+                   ht_inch = data$ht_inch, ht_feet = data$ht_feet)
 
 # Filter out bad categories
 predictors_with_categorical <- predictors_with_categorical %>%
@@ -46,6 +47,43 @@ predictors_with_categorical <- predictors_with_categorical %>%
 predictors_with_categorical$race <- factor(predictors_with_categorical$race)
 predictors_with_categorical$sex <- factor(predictors_with_categorical$sex)
 predictors_with_categorical$build <- factor(predictors_with_categorical$build)
+
+#Categorize height into discrete categories
+NUM_INCHES_IN_FOOT <- 12
+total_ht_inches <- as.numeric(as.character(predictors_with_categorical$ht_feet))*NUM_INCHES_IN_FOOT + as.numeric(as.character(predictors_with_categorical$ht_inch))
+
+predictors_with_categorical <- cbind(predictors_with_categorical,total_ht_inches)
+
+categorical_height<- numeric(nrow(predictors_with_categorical))
+
+is_male = (predictors_with_categorical$sex == "M")
+categorical_height = ((total_ht_inches >= 72) & is_male) * 4 +
+  ((total_ht_inches >= 67 & total_ht_inches < 72) & is_male) * 3 +
+  ((total_ht_inches >= 63 & total_ht_inches < 67) & is_male) * 2 +
+  ((total_ht_inches < 63) & is_male) * 1 +
+  ((total_ht_inches >= 70) & !is_male) * 4 +
+  ((total_ht_inches >= 65 & total_ht_inches < 70) & !is_male) * 3 +
+  ((total_ht_inches >= 60 & total_ht_inches < 65) & !is_male) * 2 +
+  ((total_ht_inches < 60) & !is_male) * 1
+
+predictors_with_categorical <- cbind(predictors_with_categorical, categorical_height)
+
+#4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
+
+age <- as.numeric(as.character(predictors_with_categorical$age))
+is_older_15 = as.numeric(age>15)
+is_older_18 = as.numeric(age>18)
+is_older_21 = as.numeric(age>21)
+is_older_26 = as.numeric(age>26)
+is_older_35 = as.numeric(age>35)
+is_older_50 = as.numeric(age>50)
+
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_15)
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_18)
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_21)
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_26)
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_35)
+predictors_with_categorical <- cbind(predictors_with_categorical,is_older_50)
 
 
 # Takes in data and returns balanced set of data with all arrests and
