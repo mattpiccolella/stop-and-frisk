@@ -20,3 +20,9 @@ bin/parse_csv.sh data/2012.csv data/2012-data-pruned.csv
 # Part 2: Preliminary Data Analysis
 echo "Performing initial data analysis and visualization..." 
 Rscript analysis/preliminary-stats.R
+
+# Part 3: Prediction Using Navie Bayes and Logistic Regression
+echo "Make folder for output files"
+mkdir analysis/output
+echo "Performing classification..."
+Rscript analysis/prediction.R

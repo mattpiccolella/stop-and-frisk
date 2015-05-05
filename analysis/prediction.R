@@ -10,7 +10,7 @@ library(ada)
 # given reasons for being stopped
 ##################
 
-DATA_FILE <- "../data/2012-data.csv"
+DATA_FILE <- "data/2012-data.csv"
 
 
 # Import data and clean NA values
@@ -115,8 +115,6 @@ balance_data <- function(data, arrest_count, non_arrest_count) {
 ######
 
 arrests_vs_probs <- function(y_actual, y_pred_probs) {
-  y_actual <- test$arstmade
-  y_pred_probs <- lr_probs
   y_actual <- as.numeric(as.character(y_actual))
   
   # If naive bayes, we have matrix containing prob false and true. Must 
