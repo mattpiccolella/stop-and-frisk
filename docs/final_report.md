@@ -1,19 +1,14 @@
 # Modeling Social Data Final Report
-## Zachary Gleicher, Matt Piccolella, Edo Roth
 
 ## Obtaining and Filtering the Data
 
-
-
 ## Preliminary Data Analysis and Visualization
-
-
 
 ## Objective: Can we make “better” stops?
 
 ### Problem:
 
-As you can see in the preliminary data analysis, the percentage of people that are arrested after being stopped is only X%. Our hypothesis is that we can increase the percentage of effective stops by using a classification algorithm like Naive Bayes or Logistic Regression. We will define an effective stop as one where an individual gets stopped and arrested for violating the law. For our algorithm, naive bayes and logistic regression classification result in probabilities of arrest and identify features that are most predictive in determining arrest. Given the probabilities, an effective threshold can be set to optimize the effectiveness of stops. Given a higher threshold, less arrests will be made, but also less innocent people will be stopped. Finally, we plan to identify the features that are most predictive in determining arrest. 
+As you can see in the preliminary data analysis, the percentage of people that are arrested after being stopped is only ~6%. Our hypothesis is that we can increase the percentage of effective stops by using a classification algorithm like Naive Bayes or Logistic Regression. We will define an effective stop as one where an individual gets stopped and arrested for violating the law. For our algorithm, Naive Bayes and logistic regression classification produce results as probabilities which can be interpreted as probability for arrest. By setting a threshold on the probability, we hope to see if more effective stops can be made such that less innocent people are stopped, while still maximizing the number of criminal arrests.
 
 ### Choosing Features:
 
@@ -61,26 +56,22 @@ As described above, we included additional features which may not be technical r
   - T: Thin
   - U: Muscular
   - Z: Unknown
-- Height
-  -4: Tall
-  -3: Tall-Average
-  -2: Short-Average
-  -1: Short
-- Age (Boolean categories)
-  -Over 15 years old
--Over 18 years old
--Over 21 years old
--Over 26 years old
--Over 15 years old
--Over 35 years old
-  -Over 50 years old
+- Height (Categorized differently for men and women):
+  - 4: Tall
+  - 3: Tall-Average
+  - 2: Short-Average
+  - 1: Short
+- Age:
+  - Kept as numeric data
+- Precinct:
+  - 76 different police precincts in Manhattan, Bronx, Queens, Brooklyn, and Staten Island
+- Officer in Uniform:
+  - 0: Not in uniform
+  - 1: In uniform
 
-- Precinct ?
-  - Proxy for location but probably has a lot of confounding variables
+### Additional Data Cleaning
 
-### Cleaning Data Further
-
-When looking at the data, we realized there were a lot of bad data points that were either clearly misentered, or not useful for our analysis. As discussed before, we first only selected those features that would be useful to classify whether an arrest should be made or not. We then filtered out some points -- for instance, we had many values of age that that were over 200 and clearly misentered, so we limited our analysis to individuals under 100 years of age, a reasonable assumption as we only take out a miniscule percentage of values, most of which are likely incorrect. We also filtered out unknown values for race, sex, and build -- as we have so much data, we figured this would not assist in our analysis, and does not represent any significant portion of the population.
+After adding the feature set, we used `dplyr` to filter out entries with missing or misentered information. We filtered out entries where the age was greater than 100. We limited the race categories to White, Black, Asian, White-Hispanic, and Black-Hispanic which made up ~97% of the data. We also eliminated entries for "sex" and "build" which were marked as "Unknown." This data cleaning removed about 5% of entries, and given that our dataset is so large, did not have a substantial impact.
 
 Percentages of data filtered out:
 Age: 0.02%
@@ -88,11 +79,10 @@ Race: 3%
 Sex:  1.5%
 Build: 0.06%
 
-Finally, we took the columns of height in inches and feet and combined them to form a total height column, categorizing them into discrete values. We adjusted for height in men and women, creating 4 categories of height based on these adjusted values. 
+Additionally, we reformatted height into categories. We adjusted for height in men and women, creating 4 categories of height based on these adjusted values. 
 
 #4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
 
-Age was also reduced to smaller buckets of discrete value for use in classification -- we created boolean columns is_older_15, is_older_18, is_older_21, is_older_26, is_older_35, is_older_50 to give us a better means to classify the categorical age of individuals stopped.
 
 ## Balancing Data
 
@@ -100,17 +90,17 @@ One of the initial problems we realized is that the data is imbalanced given tha
 
 ## Naive Bayes
 
-The first classification algorithm we decided to try is naive bayes. Naive bayes is probably not the best choice for classification given that the features in the dataset are not independent. In this classification.
+The first classification method we decided to try is the Naive Bayes algorithm. As you will see below, Naive Bayes gave poor and inconclusive results. Naive Bayes makes an independence assumption for features that is clearly not the case in our data.
 
 ### Model
 
-In looking at the model, we tried to identify probabilities that could help distinguish arrest vs no arrest. Most of the probabilities remained fairly consistent. 
+In looking at the model, we examined the likelihood values for different features to see if any features had  arrest vs no arrest. Most of the probabilities remained fairly consistent. 
 
 #### Example:
-               cs_objcs
-factor(y_train)          0          1
-              0 0.97885914 0.02114086
-              1 0.92609709 0.07390291
+Carrying a Suspicious Object
+| No | Yes
+No Arrest | 0.97885914 | 0.02114086
+Arrest | 0.92609709 | 0.07390291
 
 In this example we see that for ~7% arrests, the officer noted that the suspect carried a suspicious object, conversely, ~2% of non-arrests occurred when an officer noted that the suspect was holding a suspicious object. This spread is not very large
 
