@@ -99,6 +99,7 @@ In looking at the model, we examined the likelihood values for different feature
 #### Example:
 Carrying a Suspicious Object
 | No | Yes
+--- | --- | ---
 No Arrest | 0.97885914 | 0.02114086
 Arrest | 0.92609709 | 0.07390291
 
