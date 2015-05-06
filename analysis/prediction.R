@@ -4,7 +4,6 @@ library(ggplot2)
 library(scales)
 library(ROCR)
 library(e1071)
-library(ada)
 ##################
 # Use naive bayes and logistic regression to find the probability of being arrested
 # given reasons for being stopped
@@ -33,7 +32,8 @@ predictors <- data.frame(arstmade=factor(data$arstmade), cs_objcs=factor(data$cs
 # Adding some additional categorical data
 predictors_with_categorical <- data.frame(predictors, race=data$race, 
                    offunif=data$offunif, sex=data$sex, build=data$build,
-                   ht_feet=data$ht_feet, ht_inch=data$ht_inch, age=data$age)
+                   ht_feet=data$ht_feet, ht_inch=data$ht_inch, age=as.numeric(as.character(data$age)),
+                   pct=factor(data$pct))
 
 # Filter out bad categories
 predictors_with_categorical <- predictors_with_categorical %>%
@@ -71,23 +71,23 @@ predictors_with_categorical$categorical_height <- factor(categorical_height)
 
 #4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
 
-age <- as.numeric(as.character(predictors_with_categorical$age))
-is_older_15 = as.numeric(age>15)
-is_older_18 = as.numeric(age>18)
-is_older_21 = as.numeric(age>21)
-is_older_26 = as.numeric(age>26)
-is_older_35 = as.numeric(age>35)
-is_older_50 = as.numeric(age>50)
-
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_15))
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_18))
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_21))
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_26))
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_35))
-predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_50))
+# age <- as.numeric(as.character(predictors_with_categorical$age))
+# is_older_15 = as.numeric(age>15)
+# is_older_18 = as.numeric(age>18)
+# is_older_21 = as.numeric(age>21)
+# is_older_26 = as.numeric(age>26)
+# is_older_35 = as.numeric(age>35)
+# is_older_50 = as.numeric(age>50)
+# 
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_15))
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_18))
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_21))
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_26))
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_35))
+# predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_50))
 
 # Remove unecessary data
-predictors_with_categorical$age <- NULL
+#predictors_with_categorical$age <- NULL
 predictors_with_categorical$ht_feet <- NULL
 predictors_with_categorical$ht_inch <- NULL
 
@@ -115,10 +115,12 @@ balance_data <- function(data, arrest_count, non_arrest_count) {
 ######
 
 arrests_vs_probs <- function(y_actual, y_pred_probs) {
+  
   y_actual <- as.numeric(as.character(y_actual))
   
-  # If naive bayes, we have matrix containing prob false and true. Must 
-  # choose prob of true
+  # For logistic regression get vector of probabilites
+  # If naive bayes, we have matrix with col 1 prob no-arrest and col 2 prob of arres. Must choose col 2
+  # For logistic regression with lasso get a matrix with one column
   if(!is.vector(y_pred_probs)) {
     if(ncol(y_pred_probs) == 2) {
       y_pred_probs <- y_pred_probs[,2]
@@ -136,7 +138,11 @@ arrests_vs_probs <- function(y_actual, y_pred_probs) {
   avg_stop_and_arrest <- df_shuffled %>%
     mutate(pct_arrests=cumsum(y_actual)/sum(y_actual)) %>%
     mutate(pct_stops = cumsum(rep(1, n()))/n())
-  plot1 <- ggplot(avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests)) + geom_line()
+  plot1 <- ggplot(avg_stop_and_arrest, aes(x=pct_stops, y=pct_arrests)) + 
+    geom_line() +
+    xlab("Percentage of Stops") +
+    ylab("Percentage of Arrests") +
+    ggtitle("Percentage of Arrests vs Stops")
   
   # Make a data frame so that it is ordered by highest to lowest probabilites
   df_sorted <- df[order(-df$y_pred_probs), ]
@@ -148,16 +154,40 @@ arrests_vs_probs <- function(y_actual, y_pred_probs) {
   
   # Plot the tradeoff between the the predicted probability of stopping somewone
   # vs the percentage of people stopped
-  plot2 <- ggplot(best_stops, aes(x=y_pred_probs, y=pct_arrests)) + geom_line()
+  plot2 <- ggplot(best_stops, aes(x=y_pred_probs, y=pct_arrests)) + 
+    geom_line() +
+    xlab("Probability of Arrest") +
+    ylab("Percentage of Arrests") +
+    ggtitle("Probability of Arrest vs Percentage of Arrests")
   
   # Plot the percent of stops vs the percent of arrests
   plot3 <- ggplot(best_stops, aes(x=pct_stops, y=pct_arrests)) + 
-    geom_line()
+    geom_line() +
+    xlab("Percentage of Stops") +
+    ylab("Percentage of Arrests") +
+    ggtitle("Percentage of Stops vs Arrests Sorted by Highest Likelihood of Arrest")
   
   print(plot1)
   print(plot2)
   print(plot3)
   
+}
+
+#######
+# Funciton to find most predictive features in naive bayes
+# Looks at differnece between predicting yes arrest and no arrest
+# and finds the largest differences
+########
+
+naive_bayes_diffs <- function(nb_model) {
+  list_of_tables <- nb_model$tables
+  num_of_tables <- length(list_of_tables)
+  ret <- list()
+  for (i in (1:num_of_tables)) {
+    diff <- list_of_tables[[i]][1,] - list_of_tables[[i]][2,]
+    ret[[i]] <- c(list_of_tables[i], diff)
+  }
+  return(ret)
 }
 
 
@@ -166,7 +196,7 @@ arrests_vs_probs <- function(y_actual, y_pred_probs) {
 #######################################
 # Choose the data set you wish to use 
 ARREST_COUNT <- 30000
-NO_ARREST_COUNT <- 30000
+NO_ARREST_COUNT <- 100000
 D <- balance_data(predictors_with_categorical, ARREST_COUNT, NO_ARREST_COUNT)
 
 # Split into test and train
@@ -191,6 +221,8 @@ y_test <- D[-ndx, 1]
 nb_model <- naiveBayes(x_train, factor(y_train))
 print("Naive Bayes Model")
 print(nb_model)
+print("Naive Bayes Differences in Probabilites")
+print(naive_bayes_diffs(nb_model))
 
 # Build confusion matrix
 nb_table <- table(predict(nb_model, x_test), factor(y_test))
@@ -235,6 +267,8 @@ test <- D[-ndx,]
 lr_model <- glm(arstmade ~ ., data=train, family="binomial")
 print("Logistic Regression Model")
 print(lr_model)
+print("Get 10 best predictors for Arrest")
+print(tail(sort(lr_model$coefficients), 10))
 
 # Build a confusion matrix
 lr_table <- table(predict(lr_model, test[,-1]) > 0, test$arstmade)
@@ -285,17 +319,17 @@ x_test <- as.matrix(x_factors_test)
 
 
 # Build the model
-lr_model <- cv.glmnet(x_train, factor(y_train), family="binomial", type.measure="auc")
+lasso_model <- cv.glmnet(x_train, factor(y_train), family="binomial", type.measure="auc")
 print("Lasso Model")
-print(lr_model)
+print(lasso_model)
 
 # Build a confusion matrix
-lasso_table <- table(predict(lr_model, x_test, type="class"), factor(y_test))
+lasso_table <- table(predict(lasso_model, x_test, type="class"), factor(y_test))
 print("Lasso Confusion Matrix")
 print(lasso_table)
 
 # plot histogram of predicted probabilities
-lr_probs <- predict(lr_model, x_test, type="response")
+lr_probs <- predict(lasso_model, x_test, type="response")
 lasso_pred_prob <- qplot(x=lr_probs[,1], geom="histogram")
 
 # plot ROC curve
@@ -317,7 +351,7 @@ get_best_features <- function(crossval) {
 }
 
 # Get Most important important features
-feats <- get_best_features(lr_model)
+feats <- get_best_features(lasso_model)
 feats <- feats[order(feats$weight),]
 
 print("Lasso Most Predictive Features")
