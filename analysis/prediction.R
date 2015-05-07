@@ -381,7 +381,7 @@ dev.off()
 # Adaboost
 ####
 
-SMALLER_SAMPLE_SIZE = 100000
+SMALLER_SAMPLE_SIZE = 30000
 SMALL_D <- D[sample(nrow(D), SMALLER_SAMPLE_SIZE),]
 
 train <- SMALL_D[ndx,]
