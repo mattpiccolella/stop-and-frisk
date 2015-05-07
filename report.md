@@ -32,11 +32,12 @@ Our output is contained in the `output/` directory, and looks as follows:
 
 ```
 ├── output/ 
-|   └── clustering-map.pdf - map of NYC with cluster centers plotted
-|   └── preliminary-analysis.pdf - graphs from our preliminary analysis
-|   └── lasso_data.txt - description/results of our lasso model
-|   └── nb_data.txt - description/results of our naive bayes model
-|   └── lr_data.txt - description/results of our logistic regression model
-|   └── nb_graphs.pdf - graphs of our naive bayes results
-|   └── lr_graphs.pdf - graphs of our logistic regression results
-``` 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+|   └── data/ - data specifically for our web visualizations 
+```
+

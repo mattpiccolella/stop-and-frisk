@@ -4,6 +4,7 @@ library(ggplot2)
 library(scales)
 library(ROCR)
 library(e1071)
+library(ada)
 ##################
 # Use naive bayes and logistic regression to find the probability of being arrested
 # given reasons for being stopped
