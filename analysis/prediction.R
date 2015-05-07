@@ -398,9 +398,9 @@ plot(ada_model, test=T)
 varplot(ada_model)
 
 # Predict on test data
-predictions <-predict(ada_model, newdata=test, type="vector")
+predictions <- predict(ada_model, newdata=test, type="vector")
 
-pred <- prediction(predictions, test[,1])
+pred <- prediction(as.numeric(as.character(predictions)), test[,1])
 perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
 plot(perf_lr)
 
