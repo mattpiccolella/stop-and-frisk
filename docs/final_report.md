@@ -79,65 +79,62 @@ Race: 3%
 Sex:  1.5%
 Build: 0.06%
 
-Additionally, we reformatted height into categories. We adjusted for height in men and women, creating 4 categories of height based on these adjusted values. 
-
-#4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
-
-
-## Balancing Data
-
-One of the initial problems we realized is that the data is imbalanced given that only 6% of stops lead to arrests. Consequently, our predictions for arrest or no-arrest could result in 94% accuracy by predicting every stop as no-arrest. For this reason, accuracy is not a good measure for success. Rather, we chose to plot the ROC curve to compare false positives to true positives. Additionally, in order to compensate for the imbalance in data, we split the data into two groups: arrests and no-arrest. Then, in the classification task, we randomly sample 30,000 data points from each set in order to generate a balanced data set of arrests and no-arrests.
+Additionally, we reformatted height into categories: "Tall," "Tall-Average," "Short-Average" "Short". We adjusted for height in men and women, creating 4 categories of height based on these adjusted values. 
 
 ## Naive Bayes
 
-The first classification method we decided to try is the Naive Bayes algorithm. As you will see below, Naive Bayes gave poor and inconclusive results. Naive Bayes makes an independence assumption for features that is clearly not the case in our data.
+The first classification method we decided to try is the Naive Bayes algorithm.
 
 ### Model
 
-In looking at the model, we examined the likelihood values for different features to see if any features had  arrest vs no arrest. Most of the probabilities remained fairly consistent. 
+Given the imbalance of the data, with ~94% no-arrests, be thought that the Naive Bayes classifier would perform better if we balanced the data. The reason for this is that the prior distribution of the classes, would lead to significantly higher posterior probabilities for no-arrest. We split the data into two groups: arrests and no-arrest. Then, in the classification task, we randomly sample 30,000 data points from each set in order to generate a balanced data set of arrests and no-arrests. After balancing the data, however, the ROC curve did not improve.
+
+One of the initial problems we realized is that the data is imbalanced given that only 6% of stops lead to arrests. Consequently, our predictions for arrest or no-arrest could result in 94% accuracy by predicting every stop as no-arrest. For this reason, accuracy is not a good measure for success. Rather, we chose to plot the ROC curve to compare false positives to true positives. Additionally, in order to compensate for the imbalance in data, 
+
+In looking at the model, we examined the likelihood values for the features to see which differences in likelihood would lead to a greater difference in the posterior probability for determining whether the data should be classified as arrest of no-arrest. Most of the likelihood estimates that remained fairly consistent for both classes. 
 
 #### Example:
-Carrying a Suspicious Object
+Reason for Stop: Carrying a Suspicious Object
 
  | No | Yes
 --- | --- | ---
 No Arrest | 0.97885914 | 0.02114086
 Arrest | 0.92609709 | 0.07390291
 
-In this example we see that for ~7% arrests, the officer noted that the suspect carried a suspicious object, conversely, ~2% of non-arrests occurred when an officer noted that the suspect was holding a suspicious object. This spread is not very large
+In this example we see that for ~7% arrests, the officer noted that the suspect carried a suspicious object, conversely, ~2% of non-arrests occurred when an officer noted that the suspect was holding a suspicious object. This spread is not very large, which will lead to a relatively small difference when using Naive Bayes to calculate the difference in likelihood between arrest and no arrest.
 
 ### Most decisive Features
 
-             
-               cs_descr
-factor(y_train)         0         1
-              0 0.8453423 0.1546577
-              1 0.6886918 0.3113082
+Here are the features with the largest difference in likelihood between arrest and no arrest. All other features had differences less than 0.1.
 
+Reason For Stop: Fits a Relevant Description
 
-               cs_casng
-factor(y_train)         0         1
-              0 0.6338087 0.3661913
-              1 0.8301274 0.1698726
+ | No | Yes
+--- | --- | ---
+No Arrest | 0.8453423 | 0.1546577
+Arrest | 0.6886918 | 0.3113082
 
-               ac_rept
-factor(y_train)         0         1
-              0 0.8815675 0.1184325
-              1 0.6976337 0.3023663
+Reason for Stop: Casing a Victim or Location
 
-               offunif
-factor(y_train)         0         1
-              0 0.2432714 0.7567286
-              1 0.3628813 0.6371187
+ | No | Yes
+--- | --- | ---
+No Arrest | 0.6338087 | 0.3661913
+Arrest | 0.8301274 | 0.1698726
 
+Additional Circumstances: Report by Victim/Witness/Officer
 
+ | No | Yes
+--- | --- | ---
+No Arrest | 0.8815675 | 0.1184325
+Arrest | 0.6976337 | 0.3023663
 
-               race
-factor(y_train)          A              B            P            Q            W
-              0 0.03156534 0.55312318 0.06976065 0.24714369 0.09840714
-              1 0.04021984 0.51328171 0.07698393 0.26371888 0.10579565
+Was the Officer in Uniform
 
-Notice that all the races had nearly equal probabilities for arrest and no arrest, but the only race that had a higher probability of no arrest was black
+ | No | Yes
+--- | --- | ---
+No Arrest | 0.2432714 | 0.7567286
+Arrest | 0.3628813 | 0.6371187
+
 
 
 ### Probability Graph
@@ -146,41 +143,45 @@ Notice that all the races had nearly equal probabilities for arrest and no arres
 
 In this graph, you will notice that there is higher probability mass towards predicting arrests and consequently our confusion matrix has a higher rate of true positives than true negatives.
 
-### Confusion Matrix
-
-    True Values
-          0      1
-Predicted     0 3511 1680
-Values    1 2450 4359
-
-
 ### ROC Curve
 
 **INSERT GRAPH**
 
 AUC 0.7199524
 
-## Additional Graphs
-
-**INSERT GRAPH**
-
-This graph represents the percentage of stops vs percentage of arrests where the data is sorted by the . has a straight line with a slope of ~1,  the weakness of the naive bayes classifier. The data is organized such that the data is ordered from highest probability of arrest to lowest probability of arrest. Consequently, we hope to get a curve with a greater probability for arrest  
+It is important to use the ROC curve to evaluate the model because imbalanced data can lead to deceiving results when talking about accuracy. For example, if I had a dumb model that predicted no-arrest for every data point, I would get 94% accuracy. 
 
 ## Logistic Regression
 
-### Probability Graph
-
-### Confusion Matrix
-
-### Best Indicators
-
-## Logistic Regression with Lasso
+Additionally, we built a logistic regression model to classify the data as arrest and non-arrest. Since the feature space is small compared to the size of the dataset, we did not believe that a regularization method like lasso would lead to a dramatic improvement. We tested this hypothesis by implementing logistic regression model with lasso, and it performed the same. The logistic regression model did outperform the the Naive Bayes model by increasing the AUC by about 0.1
 
 ### Probability Graph
 
-### Confusion Matrix
+Notice that this graph, very much like the Naive Bayes model, predicts more heavily on 
 
-### Best Indicators
 
-## Best Predictors
+## Results
+
+Using the logistic regression model, we built a model that could lead to better predictions for arrests. 
+
+**INSERT GRAPH**
+
+This graph shows the predicted probability of arrest from the logistic regression model verses the percentage of arrests made. As you can see, the curves falls very quickly, which is due to the fact that the model predicts non-arrests much more heavily.
+
+**INSERT GRAPH**
+
+Here, you can see a graph comparing the percentage of stops vs the percentage of arrests. The data has been sorted by the highest probabilities. Intuitively, we want to increase the area between the blue dashed line and the black curve. More area means that our classification algorithm can predict more arrests in a given set of stops. This graph shows that you can reduce the number of innocent stops by 50% while only reducing the number of guilty stops by about 20%. With the combination of both graphs, a probability threshold can be set in order to find a better trade off between minimizing the number of stops of innocent people, while still maximizing the number of stops of guilty people.
+
+Here is the list of the 10 most predictive features for arrest given a stop: 
+
+"Get 10 best predictors for Arrest"
+    pct42     pct25     pct19     pct44    pct105    pct102 cs_drgtr1      pct9  ac_rept1 cs_objcs1 
+0.5008073 0.5639895 0.6069064 0.6222683 0.6400148 0.7004087 0.8372146 0.8652883 0.9516741 1.0960916 
+
+
+Using our model would be impractical to use on the field given the amount of time it would take to fill out the variables to determine whether someone should be stopped. Therefore, we limit the logistic regression model such that all negative coefficients are set to 0. This update reduced our AUC by about 0.07, but still performs better than using no model. A police officer can then focus on these features to help determine whether someone should be stopped or not. 
+
+
+
+
 

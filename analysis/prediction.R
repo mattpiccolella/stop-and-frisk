@@ -9,7 +9,7 @@ library(e1071)
 # given reasons for being stopped
 ##################
 
-DATA_FILE <- "data/2012-data.csv"
+DATA_FILE <- "../data/2012-data.csv"
 
 
 # Import data and clean NA values
@@ -42,7 +42,9 @@ predictors_with_categorical <- predictors_with_categorical %>%
   # Filter out unknow sex (If you dont know the sex then your data is probably not great)
   filter(sex=="F" | sex=="M") %>%
   # H: Heavy, M: Medium, U: Muscular, T: Thin, Z: Unknown
-  filter(build=="H" | build=="M" | build=="T" | build=="U" | build=="Z")
+  filter(build=="H" | build=="M" | build=="T" | build=="U" | build=="Z") %>%
+  # Filter out age greater than 100
+  filter(age <= 100)
 
 # Re-factor data
 predictors_with_categorical$race <- factor(predictors_with_categorical$race)
@@ -163,6 +165,7 @@ arrests_vs_probs <- function(y_actual, y_pred_probs) {
   # Plot the percent of stops vs the percent of arrests
   plot3 <- ggplot(best_stops, aes(x=pct_stops, y=pct_arrests)) + 
     geom_line() +
+    geom_abline(intercept = 0, slope = 1, colour="blue", linetype="dashed") +
     xlab("Percentage of Stops") +
     ylab("Percentage of Arrests") +
     ggtitle("Percentage of Stops vs Arrests Sorted by Highest Likelihood of Arrest")
@@ -196,7 +199,7 @@ naive_bayes_diffs <- function(nb_model) {
 #######################################
 # Choose the data set you wish to use 
 ARREST_COUNT <- 30000
-NO_ARREST_COUNT <- 100000
+NO_ARREST_COUNT <- 400000
 D <- balance_data(predictors_with_categorical, ARREST_COUNT, NO_ARREST_COUNT)
 
 # Split into test and train
@@ -231,7 +234,9 @@ print(nb_table)
 
 # Get the probabilites of prediction
 probs <- predict(nb_model, x_test, type="raw")
-nb_pred_prob <- qplot(x=probs[, "1"], geom="histogram")
+nb_pred_prob <- qplot(x=probs[, "1"], geom="histogram") +
+  xlab("Probability") +
+  ggtitle("Naive Bayes Probabilites")
 
 # Notice the confidence of some results- should see what features make less confident
 
@@ -248,7 +253,7 @@ sink()
 pdf(NB_OUTPUT_GRAPHS)
 print(nb_pred_prob)
 plot(perf_nb)
-arrests_vs_probs(y_train, probs) 
+arrests_vs_probs(y_test, probs) 
 dev.off()
 
 
@@ -277,7 +282,9 @@ print(lr_table)
 
 # plot histogram of predicted probabilities
 lr_probs <- predict(lr_model, test[,-1], type="response")
-lr_pred_prob <- qplot(x=lr_probs, geom="histogram")
+lr_pred_prob <- qplot(x=lr_probs, geom="histogram")  +
+  xlab("Probability") +
+  ggtitle("Logistic Regression Probabilites")
 
 # plot ROC curve
 pred <- prediction(lr_probs, test$arstmade)
@@ -330,7 +337,9 @@ print(lasso_table)
 
 # plot histogram of predicted probabilities
 lr_probs <- predict(lasso_model, x_test, type="response")
-lasso_pred_prob <- qplot(x=lr_probs[,1], geom="histogram")
+lasso_pred_prob <- qplot(x=lr_probs[,1], geom="histogram")  +
+  xlab("Probability") +
+  ggtitle("Logistic Regression with Lasso Probabilites")
 
 # plot ROC curve
 pred <- prediction(lr_probs, test$arstmade)
@@ -368,3 +377,76 @@ plot(perf_lr)
 arrests_vs_probs(y_test, lr_probs) 
 dev.off()
 
+####
+# Adaboost
+####
+
+SMALLER_SAMPLE_SIZE = 100000
+SMALL_D <- D[sample(nrow(D), SMALLER_SAMPLE_SIZE),]
+
+train <- SMALL_D[ndx,]
+test <- SMALL_D[-ndx,]
+
+ada_model <- ada(arstmade ~., data=train, verbose=TRUE, na.action=na.rpart)
+
+ada_model <- addtest(ada_model, test.x=test[,-1], test.y=test$arstmade)
+
+# Plot the model
+plot(ada_model, test=T)
+
+# Plot most important features
+varplot(ada_model)
+
+# Predict on test data
+predictions <-predict(ada_model, newdata=test, type="vector")
+
+pred <- prediction(predictions, test[,1])
+perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
+plot(perf_lr)
+
+print(performance(pred, 'auc'))
+
+
+
+#####
+# Define Heuristic 
+#####
+
+# Choose the data set you wish to use 
+
+D <- predictors_with_categorical
+
+#Take out precinct information
+D$pct = NULL
+D$ht_inch = NULL
+D$ht_feet = NULL 
+
+# Split into test and train
+PCT_TRAIN <- 0.8
+
+ndx <- sample(nrow(D), floor(nrow(D) * PCT_TRAIN))
+
+# split into test and train
+train <- D[ndx,]
+test <- D[-ndx,]
+
+# Build the model
+lr_model <- glm(arstmade ~ ., data=train, family="binomial")
+
+# Remove all negative coefficeincts
+lr_model$coefficients[lr_model$coefficients < 0] = 0 
+
+# Get the predicted probabilites
+lr_probs <- predict(lr_model, test[,-1], type="response")
+
+# plot ROC curve. Notice that AUC does not get significantly reduced
+pred <- prediction(lr_probs, test$arstmade)
+perf_lr <- performance(pred, measure='tpr', x.measure='fpr')
+plot(perf_lr)
+
+print("Logistic Regression AUC")
+print(performance(pred, 'auc'))
+
+#Look at predictive features
+
+sort(lr_model$coefficients)
