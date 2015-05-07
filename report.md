@@ -72,16 +72,7 @@ detailcm incidences                                       label
 8         9      21175                                     ASSAULT
 9        68      13505                               PETIT LARCENY
 10       24      11788 CRIMINAL POSSESION  OF CONTROLLED SUBSTANCE
-11       28       8759       CRIMINAL SALE OF CONTROLLED SUBSTANCE
-12       59       7265                             MAKING GRAFFITI
-13       23       5614                           CRIMINAL MISCHIEF
-14       19       2643       CRIMINAL POSSESION OF STOLEN PROPERTY
-15       96       1929                           THEFT OF SERVICES
-16      112       1882                                       OTHER
-17       29       1844                  CRIMINAL SALE OF MARIHUANA
-18       95       1091                                   TERRORISM
-19       74       1084                                PROSTITUTION
-20       10        989                              AUTO STRIPPING
+...
 ```
 
 ### Visualization with D3.js
@@ -244,10 +235,8 @@ This graph shows the predicted probability of arrest from the logistic regressio
 Here, you can see a graph comparing the percentage of stops vs the percentage of arrests where the data has been sorted by the the highest likelihood of arrest. Intuitively, we want to increase the area between the blue dashed line and the black curve. More area means that our classification algorithm substantially reduce ineffective stops. This graph shows that you can reduce the number of innocent stops by 50% while only reducing the number of guilty stops by about 20%. With the combination of both graphs, a probability threshold can be set in order to find a better trade off between minimizing the number of stops of innocent people, while still maximizing the number of stops of guilty people.
 
 ### Sources
-[1] http://www.washingtonpost.com/blogs/the-fix/wp/2014/12/03/new-york-has-essentially-eliminated-stop-and-frisk-and-crime-is-still-down/
-[2] http://www.nytimes.com/2014/09/20/nyregion/friskings-ebb-but-still-hang-over-brooklyn-lives.html
-[3] http://www.nyc.gov/html/nypd/html/analysis_and_planning/stop_question_and_frisk_report.shtml
-[4] 
-https://5harad.com/papers/frisky.pdf
-[5]
-https://ds3.research.microsoft.com/doc/sqf.pdf
+- [1] http://www.washingtonpost.com/blogs/the-fix/wp/2014/12/03/new-york-has-essentially-eliminated-stop-and-frisk-and-crime-is-still-down/
+- [2] http://www.nytimes.com/2014/09/20/nyregion/friskings-ebb-but-still-hang-over-brooklyn-lives.html
+- [3] http://www.nyc.gov/html/nypd/html/analysis_and_planning/stop_question_and_frisk_report.shtml
+- [4] https://5harad.com/papers/frisky.pdf
+- [5] https://ds3.research.microsoft.com/doc/sqf.pdf
