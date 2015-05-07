@@ -246,7 +246,7 @@ Here, you can see a graph comparing the percentage of stops vs the percentage of
 
 [2] http://www.nytimes.com/2014/09/20/nyregion/friskings-ebb-but-still-hang-over-brooklyn-lives.html
 
-[3] http://www.nyc.gov/html/nypd/html/analysis_and_planning stop_question_and_frisk_report.shtml
+[3] http://www.nyc.gov/html/nypd/html/analysis_and_planning/stop_question_and_frisk_report.shtml
 
 [4] https://5harad.com/papers/frisky.pdf
 
