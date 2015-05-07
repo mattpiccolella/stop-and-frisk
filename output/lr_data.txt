@@ -1,0 +1,113 @@
+[1] "Logistic Regression Model"
+
+Call:  glm(formula = arstmade ~ ., family = "binomial", data = train)
+
+Coefficients:
+        (Intercept)            cs_objcs1            cs_descr1  
+          -1.867525             1.106710             0.297791  
+          cs_casng1            cs_lkout1            cs_cloth1  
+          -0.753964            -0.486775            -0.280860  
+          cs_drgtr1            cs_furtv1            cs_vcrim1  
+           0.819378            -0.224767            -0.149478  
+          cs_bulge1            ac_proxm1            ac_evasv1  
+           0.002850             0.158686             0.500002  
+          ac_assoc1            ac_cgdir1            ac_incid1  
+           0.102631             0.030198            -0.088198  
+           ac_time1            ac_stsnd1             ac_rept1  
+          -0.010518             0.417891             0.956197  
+          ac_inves1                raceB                raceP  
+           0.004509            -0.054127             0.005180  
+              raceQ                raceW             offunif1  
+          -0.022630            -0.067862            -0.805051  
+               sexM               buildM               buildT  
+          -0.349381            -0.258968            -0.167529  
+             buildU               buildZ                  age  
+           0.015674            -0.497909             0.006733  
+               pct5                 pct6                 pct7  
+           0.329941            -0.416972             0.385784  
+               pct9                pct10                pct13  
+           0.988480             0.465237             0.510342  
+              pct14                pct17                pct18  
+          -0.178808            -0.125632             0.328382  
+              pct19                pct20                pct22  
+           0.705350             0.480794            -0.698113  
+              pct23                pct24                pct25  
+          -0.093835             0.449992             0.650379  
+              pct26                pct28                pct30  
+           0.330140            -0.332035             0.591830  
+              pct32                pct33                pct34  
+           0.342777            -0.086133            -0.275324  
+              pct40                pct41                pct42  
+           0.214964            -0.086560             0.595300  
+              pct43                pct44                pct45  
+           0.368573             0.671379             0.297360  
+              pct46                pct47                pct48  
+          -0.224641             0.211688            -0.413823  
+              pct49                pct50                pct52  
+          -0.007844             0.476892            -0.157653  
+              pct60                pct61                pct62  
+          -0.024796            -0.561992            -0.277626  
+              pct63                pct66                pct67  
+          -0.158632             0.280998            -0.763547  
+              pct68                pct69                pct70  
+           0.128059            -0.481943            -1.226070  
+              pct71                pct72                pct73  
+           0.205014            -0.480346            -0.674352  
+              pct75                pct76                pct77  
+          -0.555728             0.199171            -0.412919  
+              pct78                pct79                pct81  
+          -0.728585            -0.525073            -0.294026  
+              pct83                pct84                pct88  
+           0.127058            -0.292395             0.128383  
+              pct90                pct94               pct100  
+          -0.204006            -0.054816             0.047685  
+             pct101               pct102               pct103  
+          -0.120062             0.746495             0.458892  
+             pct104               pct105               pct106  
+           0.455558             0.774009            -0.027324  
+             pct107               pct108               pct109  
+           0.374419            -0.158425             0.528042  
+             pct110               pct111               pct112  
+           0.403643             0.128511             0.454965  
+             pct113               pct114               pct115  
+           0.254174             0.262036             0.125339  
+             pct120               pct122               pct123  
+           0.084800            -0.542786            -0.404300  
+categorical_height2  categorical_height3  categorical_height4  
+          -0.083205            -0.180595            -0.089200  
+
+Degrees of Freedom: 410068 Total (i.e. Null);  409961 Residual
+Null Deviance:	    188000 
+Residual Deviance: 165600 	AIC: 165800
+[1] "Get 10 best predictors for Arrest"
+    pct42     pct25     pct44     pct19    pct102    pct105 cs_drgtr1  ac_rept1 
+0.5952998 0.6503790 0.6713788 0.7053499 0.7464945 0.7740094 0.8193778 0.9561969 
+     pct9 cs_objcs1 
+0.9884802 1.1067099 
+[1] "Logistic Regression Confusion Matrix"
+       
+            0     1
+  FALSE 96251  6123
+  TRUE     61    83
+[1] "Logistic Regression AUC"
+An object of class "performance"
+Slot "x.name":
+[1] "None"
+
+Slot "y.name":
+[1] "Area under the ROC curve"
+
+Slot "alpha.name":
+[1] "none"
+
+Slot "x.values":
+list()
+
+Slot "y.values":
+[[1]]
+[1] 0.7645352
+
+
+Slot "alpha.values":
+list()
+

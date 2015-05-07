@@ -9,7 +9,7 @@ library(e1071)
 # given reasons for being stopped
 ##################
 
-DATA_FILE <- "../data/2012-data.csv"
+DATA_FILE <- "data/2012-data-pruned.csv"
 
 
 # Import data and clean NA values
@@ -71,8 +71,8 @@ categorical_height = ((total_ht_inches >= 72) & is_male) * 4 +
 
 predictors_with_categorical$categorical_height <- factor(categorical_height)
 
-#4 = Tall, #3 = Tall-Average, #2 = Short-Average, #1 = Short
-
+# Previously, we had thought we wanted to make factors out of the person's age.
+# However, after seeing ultimately enchanged results, we changed it back.
 # age <- as.numeric(as.character(predictors_with_categorical$age))
 # is_older_15 = as.numeric(age>15)
 # is_older_18 = as.numeric(age>18)
@@ -80,7 +80,6 @@ predictors_with_categorical$categorical_height <- factor(categorical_height)
 # is_older_26 = as.numeric(age>26)
 # is_older_35 = as.numeric(age>35)
 # is_older_50 = as.numeric(age>50)
-# 
 # predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_15))
 # predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_18))
 # predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_21))
@@ -89,7 +88,7 @@ predictors_with_categorical$categorical_height <- factor(categorical_height)
 # predictors_with_categorical <- cbind(predictors_with_categorical,factor(is_older_50))
 
 # Remove unecessary data
-#predictors_with_categorical$age <- NULL
+# predictors_with_categorical$age <- NULL
 predictors_with_categorical$ht_feet <- NULL
 predictors_with_categorical$ht_inch <- NULL
 
@@ -177,7 +176,7 @@ arrests_vs_probs <- function(y_actual, y_pred_probs) {
 }
 
 #######
-# Funciton to find most predictive features in naive bayes
+# Function to find most predictive features in naive bayes
 # Looks at differnece between predicting yes arrest and no arrest
 # and finds the largest differences
 ########
@@ -200,7 +199,7 @@ naive_bayes_diffs <- function(nb_model) {
 # Choose the data set you wish to use 
 ARREST_COUNT <- 30000
 NO_ARREST_COUNT <- 400000
-D <- balance_data(predictors_with_categorical, ARREST_COUNT, NO_ARREST_COUNT)
+D <- predictors_with_categorical
 
 # Split into test and train
 PCT_TRAIN <- 0.8
@@ -220,7 +219,7 @@ y_train <- D[ndx, 1]
 y_test <- D[-ndx, 1]
 
 
-# Use naive Bayes to build model
+# Use Naive Bayes to build model
 nb_model <- naiveBayes(x_train, factor(y_train))
 print("Naive Bayes Model")
 print(nb_model)

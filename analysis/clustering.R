@@ -1,7 +1,7 @@
 require(dplyr)
 require(ggplot2)
 
-DATA_FILE <- "../data/2012.csv"
+DATA_FILE <- "data/2012.csv"
 
 ######################
 # Preliminary data analysis
@@ -11,12 +11,10 @@ DATA_FILE <- "../data/2012.csv"
 data <- read.csv(DATA_FILE, header=T)
 
 # Get the number of unique police precincts, and make this the number of clusters
-pct <- data$pct
-NUM_CLUSTERS <- length(unique(pct)) 
+NUM_CLUSTERS <- 20
 
 # Extract x and y coordinates and place in data frame
 geo_data <- data.frame(x=data$xcoord, y=data$ycoord)
-geo_data[geo_data$x=="",] <- NA
 # Omit data without geo_data
 geo_data_no_na <- na.omit(geo_data)
 # List of valid rows with geo_data
@@ -44,10 +42,9 @@ smaller_sample <- data_with_clusters[sample(dim(data_with_clusters)[1], 50000, r
 
 ggplot(data=smaller_sample, aes(x=x, y=y, color=cluster )) + 
   geom_point() + 
-  geom_point(data=centers, aes(x=x,y=y, color='Center')) 
-
-
-
+  geom_point(data=centers, aes(x=x,y=y, color='Center')) +
+  ggtitle("The Centers of Stop and Frisk")
+ggsave("output/clustering-map.pdf")
 
 ######################
 # Homemade k-means
@@ -126,7 +123,7 @@ k_means <- function(data, k, tau) {
 
 small_data <- geo_data_no_na[sample(dim(geo_data_no_na)[1], 10000, replace=F),]
 
-
-ptm <- proc.time()
-results <- k_means(small_data, NUM_CLUSTERS, 10)
-proc.time() - ptm
+# Uncomment this if you want to run. WARNING: it takes a long time.
+# ptm <- proc.time()
+# results <- k_means(small_data, NUM_CLUSTERS, 10)
+# proc.time() - ptm
