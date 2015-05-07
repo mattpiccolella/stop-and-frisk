@@ -229,7 +229,7 @@ As you will notice, the most predictive features include precincts, but also inc
 
 ## Adaboost
 
-Additionally, we implemented the adaboost algorithm to see if we could get better results. Adaboost did not perform as well and had trouble working on such a large dataset.
+Additionally, we implemented the adaboost algorithm to see if we could get better results. Adaboost did not perform as well and had trouble working on such a large dataset, so we commented out the code in our script.
 
 ## Results
 
