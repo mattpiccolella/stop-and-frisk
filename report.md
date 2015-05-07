@@ -245,9 +245,11 @@ Here, you can see a graph comparing the percentage of stops vs the percentage of
 
 ### Sources
 [1] http://www.washingtonpost.com/blogs/the-fix/wp/2014/12/03/new-york-has-essentially-eliminated-stop-and-frisk-and-crime-is-still-down/
+
 [2] http://www.nytimes.com/2014/09/20/nyregion/friskings-ebb-but-still-hang-over-brooklyn-lives.html
+
 [3] http://www.nyc.gov/html/nypd/html/analysis_and_planning/stop_question_and_frisk_report.shtml
-[4] 
-https://5harad.com/papers/frisky.pdf
-[5]
-https://ds3.research.microsoft.com/doc/sqf.pdf
+
+[4] https://5harad.com/papers/frisky.pdf
+
+[5]https://ds3.research.microsoft.com/doc/sqf.pdf
