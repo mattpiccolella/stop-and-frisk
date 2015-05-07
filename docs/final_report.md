@@ -5,7 +5,7 @@
 For our project, we looked at New York City Stop and Frisk data.
 
 ### What is Stop and Frisk?
-Prior to 2013, Stop and Frisk was a policy under which the New York Police Department stop, interrogate, and search people with extremely vague crtieria of suspicion. The policy reached it's peak in 2011, a year in which there were more than 685,000 stops. The Police Department claimed that the policy was effective at reducing crime; however, these claims were mostly uncorroborated<sup>[1]</sup>.In 2013, a court ruled that the practices of the NYPD were unconstitutional, violating Fourth Amendment rights. Since the ruling, Stop and Frisk has all but been stopped.
+Prior to 2013, Stop and Frisk was a policy under which the New York Police Department stop, interrogate, and search people with extremely vague criteria of suspicion. The policy reached it's peak in 2011, a year in which there were more than 685,000 stops. The Police Department claimed that the policy was effective at reducing crime; however, these claims were mostly uncorroborated<sup>[1]</sup>.In 2013, a court ruled that the practices of the NYPD were unconstitutional, violating Fourth Amendment rights. Since the ruling, Stop and Frisk has all but been stopped.
 
 
 ### Why is the data important?
@@ -31,10 +31,10 @@ This part of our report follows the general Split/Apply/Reduce paradigm that we 
 
 ### Objectives
 - Answer the following questions:
-	- Who is most affected by Stop and Frisk, and in what capacity are they affected?
-	- When does Stop and Frisk happen the most?
-	- Where in New York City do the stops occur?
-	- For what what do officers stop people?
+  - Who is most affected by Stop and Frisk, and in what capacity are they affected?
+  - When does Stop and Frisk happen the most?
+  - Where in New York City do the stops occur?
+  - For what what do officers stop people?
 - Use visualization techniques to make the answers to these questions visible.
 
 
@@ -94,19 +94,17 @@ In addition to the visualization we did with `ggplot2`, `D3.js` allowed us to cr
 A sample of the visualizations is available here:
 
 ![Precincts](https://dl.dropboxusercontent.com/s/u13x44vylhiqxqn/precincts-map.png)
+## Part 2.5: Clustering
+Initially, we had thought that clustering of the stops would be useful. We had thought that this would allow us to find the centers of Stop and Frisk in the city, which would then allow us to analyze what the centers corresponded with, whether it be police bias, income levels, etc. However, our initial results didn’t show much, so we decided to move more toward prediction. However, we wrote the code to do clustering (both using a library and a function we wrote ourselves). Below is a GeoMap with 20 centers plotted:
 
+![Clusters](https://dl.dropboxusercontent.com/s/sw4r5yfv209xkpg/clustering.png)
 
 ## Part 3: Prediction Using Naive Bayes/Logistic Regression
 This part of our report follows the analysis tools that we used in the second half of the class. Primarily, we used techniques of **classification**, which included Naive Bayes and Logistic Regression.
 
 ### Objectives
-Our main objective was to determine whether we can make "better" stops. 
 
-INCLUDE DISCUSSION ABOUT BETTER STOPS.
-
-### Problem:
-
-As you can see in the preliminary data analysis, the percentage of people that are arrested after being stopped is only ~6%. Our hypothesis is that we can increase the percentage of effective stops by using a classification algorithm like Naive Bayes or Logistic Regression. We will define an effective stop as one where an individual gets stopped and arrested for violating the law. For our algorithm, Naive Bayes and logistic regression classification produce results as probabilities which can be interpreted as probability for arrest. By setting a threshold on the probability, we hope to see if more effective stops can be made such that less innocent people are stopped, while still maximizing the number of criminal arrests.
+Our main objective was to determine whether we can make more “effective stops.” We will define an effective stop as one where an arrest is made after an officer makes a stop. In the dataset, about 94% of civilians are unnecessarily stopped. Only about 6% of people are arrested after being stopped. Our hypothesis is that we can make more effective stops by decreasing the percentage of innocent people who are stopped without substantially decreasing the number of effective stops. We plan to use Naive Bayes and logistic regression for classification and compare their results. Given that Naive Bayes and Logistic Regression classification produce results as a probability for arrest, we can examine possible probability thresholds to see if more effective stops can be made.
 
 ### Choosing Features:
 
@@ -139,36 +137,17 @@ Below you will see categories in the UF-250 form that officers can fill out as r
 
 #### Additional Features:
 
-As described above, we included additional features which may not be technical reasons for stop, but do contribute to an officer’s decision to stop a suspect. Below, you will see the additional features.
+As described above, we included additional features which may not be technical reasons for stop, but do contribute to an officer’s decision to stop a suspect. When running our classification algorithms, the AUC increased by about 0.03.  Below, you will see the additional features.
 
-- Race: 
-  - B: Black
-  - W: White
-  - A: Asian
-  - P: Black Hispanic
-  - W: White Hispanic
-- Sex: 
-  - F: Female
-  - M: Male
-- Build:
-  - H: Heavy
-  - M: Medium
-  - T: Thin
-  - U: Muscular
-  - Z: Unknown
-- Height
-  - 4: Tall
-  - 3: Tall-Average
-  - 2: Short-Average
-  - 1: Short
-- Age:
-  - Kept as numeric data
-- Precinct:
-  - 76 different police precincts in Manhattan, Bronx, Queens, Brooklyn, and Staten Island
-  - Proxy for location but probably has a lot of confounding variables like income, population density, etc...
-- Officer in Uniform:
-  - 0: Not in uniform
-  - 1: In uniform
+```
+- Race: B: Black, W: White, A: Asian, P: Black Hispanic, W: White Hispanic
+- Sex: F: Female, M: Male
+- Build: H: Heavy, M: Medium, T: Thin, U: Muscular, Z: Unknown
+- Height: 4: Tall, 3: Tall-Average, 2: Short-Average, 1: Short
+- Age: Kept as numeric data
+- Precinct: 76 different police precincts in the five boroughs
+- Officer in Uniform: 0: Not in uniform, 1: In uniform
+```
 
 ### Cleaning Data Further
 
@@ -192,23 +171,14 @@ The first classification method we decided to try is the Naive Bayes algorithm.
 
 ### Model
 
-Given the imbalance of the data, with ~94% no-arrests, be thought that the Naive Bayes classifier would perform better if we balanced the data. The reason for this is that the prior distribution of the classes, would lead to significantly higher posterior probabilities for no-arrest. We split the data into two groups: arrests and no-arrest. Then, in the classification task, we randomly sample 30,000 data points from each set in order to generate a balanced data set of arrests and no-arrests. After balancing the data, however, the ROC curve did not improve.
 
-One of the initial problems we realized is that the data is imbalanced given that only 6% of stops lead to arrests. Consequently, our predictions for arrest or no-arrest could result in 94% accuracy by predicting every stop as no-arrest. For this reason, accuracy is not a good measure for success. Rather, we chose to plot the ROC curve to compare false positives to true positives. Additionally, in order to compensate for the imbalance in data, 
+Given the imbalance of the data, with ~94% no-arrests, we realized that accuracy would not be the best metric for success. Instead, we chose to plot the ROC curve and compare the  respective AUC values. 
 
-In looking at the model, we examined the likelihood values for the features to see which differences in likelihood would lead to a greater difference in the posterior probability for determining whether the data should be classified as arrest of no-arrest. Most of the likelihood estimates that remained fairly consistent for both classes. 
-
-#### Example:
-Reason for Stop: Carrying a Suspicious Object
-
- | No | Yes
---- | --- | ---
-No Arrest | 0.97885914 | 0.02114086
-Arrest | 0.92609709 | 0.07390291
-
-In this example we see that for ~7% arrests, the officer noted that the suspect carried a suspicious object, conversely, ~2% of non-arrests occurred when an officer noted that the suspect was holding a suspicious object. This spread is not very large, which will lead to a relatively small difference when using Naive Bayes to calculate the difference in likelihood between arrest and no arrest.
+Additionally, we thought that the Naive Bayes classifier would perform better if we balanced the data. The reason for this assumption is that the prior distribution of the classes would lead to significantly higher posterior probabilities for no-arrest. We split the data into two groups: arrests and no-arrest. Then, in the classification task, we randomly sample 30,000 data points from each set in order to generate a balanced data set of arrests and no-arrests. After balancing the data, however, the AUC did not improve.
 
 ### Most decisive Features
+
+In looking at the model, we examined the likelihoods for various features in order to see which differences would lead to a greatest deviance in the posterior probabilities. Most of the likelihood estimates remained fairly consistent for both classes. 
 
 Here are the features with the largest difference in likelihood between arrest and no arrest. All other features had differences less than 0.1.
 
@@ -246,7 +216,7 @@ Arrest | 0.3628813 | 0.6371187
 
 **INSERT GRAPH**
 
-In this graph, you will notice that there is higher probability mass towards predicting arrests and consequently our confusion matrix has a higher rate of true positives than true negatives.
+In this graph, you will notice that there is higher probability mass towards predicting arrests. This is a result of the prior probability estimates for the no-arrest class being much higher than arrest. 
 
 ### ROC Curve
 
@@ -254,34 +224,39 @@ In this graph, you will notice that there is higher probability mass towards pre
 
 AUC 0.7199524
 
-It is important to use the ROC curve to evaluate the model because imbalanced data can lead to deceiving results when talking about accuracy. For example, if I had a dumb model that predicted no-arrest for every data point, I would get 94% accuracy. 
+It is important to use the ROC curve to evaluate the model because imbalanced data can lead to deceiving results when talking about accuracy. For example, if I had a dumb model that predicted no-arrest for every data point, I would get about 94% accuracy. 
 
 ## Logistic Regression
 
-Additionally, we built a logistic regression model to classify the data as arrest and non-arrest. Since the feature space is small compared to the size of the dataset, we did not believe that a regularization method like lasso would lead to a dramatic improvement. We tested this hypothesis by implementing logistic regression model with lasso, and it performed the same. The logistic regression model did outperform the the Naive Bayes model by increasing the AUC by about 0.1
+Additionally, we built a logistic regression model to classify the data as arrest and non-arrest. Since the feature space is small compared to the size of the dataset, we did not believe that a regularization method like lasso would lead to a dramatic improvement. We tested this hypothesis by implementing logistic regression model with lasso, and it performed the same. The logistic regression model did slightly outperform the the Naive Bayes model by increasing the AUC by about 0.01
+
+## Adaboost
+
+Additionally, we implemented the adaboost algorithm to see if we could get better results. Adaboost did not perform as well and had trouble working on such a large dataset
 
 ### Probability Graph
 
-Notice that this graph, very much like the Naive Bayes model, predicts more heavily on 
+Notice that this graph, very much like the Naive Bayes model, predicts more heavily on no-arrests
 
+Here is the list of the 10 most predictive features for arrest given a stop: 
+
+```
+"Get 10 best predictors for Arrest"
+    pct42     pct25     pct19     pct44    pct105    pct102 cs_drgtr1      pct9  ac_rept1 cs_objcs1 
+0.5008073 0.5639895 0.6069064 0.6222683 0.6400148 0.7004087 0.8372146 0.8652883 0.9516741 1.0960916 
+```
 
 ## Results
 
-Using the logistic regression model, we built a model that could lead to better predictions for arrests. 
+Using logistic regression, we successfully built a model that could predict more effective stops. In the graphs below, you will see that by tweaking the threshold for the probability of arrest, you can significantly reduce the number of ineffective stops.
 
 **INSERT GRAPH**
 
-This graph shows the predicted probability of arrest from the logistic regression model verses the percentage of arrests made. As you can see, the curves falls very quickly, which is due to the fact that the model predicts non-arrests much more heavily.
+This graph shows the predicted probability of arrest from the logistic regression model versus the percentage of arrests made. As you can see, the curves falls very quickly, which is due to the fact that the model predicts non-arrests much more heavily.
 
 **INSERT GRAPH**
 
 Here, you can see a graph comparing the percentage of stops vs the percentage of arrests. The data has been sorted by the highest probabilities. Intuitively, we want to increase the area between the blue dashed line and the black curve. More area means that our classification algorithm can predict more arrests in a given set of stops. This graph shows that you can reduce the number of innocent stops by 50% while only reducing the number of guilty stops by about 20%. With the combination of both graphs, a probability threshold can be set in order to find a better trade off between minimizing the number of stops of innocent people, while still maximizing the number of stops of guilty people.
-
-Here is the list of the 10 most predictive features for arrest given a stop: 
-
-"Get 10 best predictors for Arrest"
-    pct42     pct25     pct19     pct44    pct105    pct102 cs_drgtr1      pct9  ac_rept1 cs_objcs1 
-0.5008073 0.5639895 0.6069064 0.6222683 0.6400148 0.7004087 0.8372146 0.8652883 0.9516741 1.0960916 
 
 
 Using our model would be impractical to use on the field given the amount of time it would take to fill out the variables to determine whether someone should be stopped. Therefore, we limit the logistic regression model such that all negative coefficients are set to 0. This update reduced our AUC by about 0.07, but still performs better than using no model. A police officer can then focus on these features to help determine whether someone should be stopped or not. 
@@ -298,5 +273,6 @@ Using our model would be impractical to use on the field given the amount of tim
 [2] http://www.nytimes.com/2014/09/20/nyregion/friskings-ebb-but-still-hang-over-brooklyn-lives.html
 
 [3] http://www.nyc.gov/html/nypd/html/analysis_and_planning/stop_question_and_frisk_report.shtml
+
 
 
