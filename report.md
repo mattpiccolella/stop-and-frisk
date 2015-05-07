@@ -5,7 +5,7 @@
 For our project, we looked at New York City Stop and Frisk data.
 
 ### What is Stop and Frisk?
-Prior to 2013, Stop and Frisk was a policy under which the New York Police Department stop, interrogate, and search people with extremely vague criteria of suspicion. The policy reached it's peak in 2011, a year in which there were more than 685,000 stops. The Police Department claimed that the policy was effective at reducing crime; however, these claims were mostly uncorroborated<sup>[1]</sup>.In 2013, a court ruled that the practices of the NYPD were unconstitutional, violating Fourth Amendment rights. Since the ruling, Stop and Frisk has all but been stopped.
+Prior to 2013, Stop and Frisk was a policy under which the New York Police Department stopped, interrogated, and searched people with extremely vague criteria of suspicion. The policy reached its peak in 2011, a year in which there were more than 685,000 stops. The Police Department claimed that the policy was effective at reducing crime; however, these claims were mostly uncorroborated<sup>[1]</sup>.In 2013, a court ruled that the practices of the NYPD were unconstitutional, violating Fourth Amendment rights. Since the ruling, Stop and Frisk has all but been stopped.
 
 ### Why is the data important?
 While Stop and Frisk has more or less stopped, the effects of the policy are still felt throughout New York<sup>[2]</sup>. With more and more occurrences of bias from police officers across the nation, it is becoming increasingly important to improve the ways that officers assess situations. Using data, we can visualize the impact of the policy, evaluate the biases of officers, and understand the inefficiencies and ineffectiveness of the policy.
@@ -26,7 +26,7 @@ Generally, the data was pretty ready to work on, so this was a small part of our
 In order to conduct the analysis that we wanted to, we needed transform the `x` and `y` coordinates of each stop. The coordinates provided in the data come from the New York Long Island 3104 State Plan Coordinate system. The SPC is a Lambert conformal conic projection, which we had to then project back to latitude and longitude coordinates. We did this using `pyproj`, a Python library that can do the conversion. The code is available in `bin/convert_coordinates.py`. The output of this file needed to be parsed, as some of the outputs were invalid. We do this using `bin/reformat.sh`. These files were then output to `v11n/data/coordinates-pruned.csv`.
 
 ## Part 2: Preliminary Data Analysis/Visualization
-This part of our report follows the general Split/Apply/Reduce paradigm that we used throughout the course. This step involved R code to generate statistics about the data, which we then were able to understand visualize.
+This part of our report follows the general Split/Apply/Reduce paradigm that we used throughout the course. This step involved R code to generate statistics about the data, which we then were able to understand and visualize.
 
 ### Objectives
 - Answer the following questions:
